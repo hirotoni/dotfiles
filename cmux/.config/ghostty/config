@@ -1,0 +1,6 @@
+# font-family = HackNerdFont
+# font-size = 13
+# theme = dark:GruvboxDark,light:GruvboxLight
+# scrollback-limit = 50000000
+background-opacity = 0.9
+macos-option-as-alt = true
