@@ -1,0 +1,12 @@
+# マシン固有設定のテンプレート
+# ~/.zsh/local.zsh にコピーして使う（Git管理外）
+
+# マシン固有のPATH追加
+# path+=("$HOME/work/bin")
+
+# プロキシ設定
+# export HTTP_PROXY=...
+
+# 個人用 abbr / 関数
+# abbr -S --quieter cdgh='cd ~/Documents/GitHub'
+# abbr -S --quieter mmt="memov2 todos new"
