@@ -63,6 +63,7 @@ function M.setup()
   require("config.visualmulti")
   require("config.hover")
   require("config.gitsigns")
+  require("config.githublink")
 end
 
 return M
