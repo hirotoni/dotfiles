@@ -92,5 +92,28 @@ local opt = { noremap = true, silent = true }
 -- `last` targets the currently/last shown source, so toggling closes the open
 -- window even when a non-filesystem source is visible (plain `toggle` defaults
 -- to filesystem and would switch sources instead of closing).
-vim.keymap.set("n", "<C-n>", ":Neotree toggle last<CR>", opt)
-vim.keymap.set("n", "<C-S-n>", ":Neotree focus<CR>", opt)
+-- `toggle last` fails when source selector switches sources: _last.source diverges
+-- from the visible buffer, window_exists returns false, and close never fires.
+-- Instead, detect any open neo-tree window by filetype and close all of them.
+vim.keymap.set("n", "<C-n>", function()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "neo-tree" then
+      vim.cmd("Neotree close")
+      return
+    end
+  end
+  vim.cmd("Neotree last")
+end, opt)
+-- `Neotree filesystem focus` has a bug: when a different source is visible,
+-- window_exists=false so set_current_win is skipped and async navigate never
+-- refocuses. Work around it by injecting the focus into the navigate callback.
+vim.keymap.set("n", "<C-S-n>", function()
+  local manager = require("neo-tree.sources.manager")
+  local renderer = require("neo-tree.ui.renderer")
+  -- Sync _last.source so <C-n> reopen returns to filesystem.
+  require("neo-tree.command")._last.source = "filesystem"
+  local state = manager.get_state("filesystem")
+  local focus = function() vim.api.nvim_set_current_win(state.winid) end
+  if renderer.window_exists(state) then focus()
+  else manager.navigate(state, state.path, nil, focus, false) end
+end, opt)
