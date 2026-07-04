@@ -17,8 +17,8 @@ function M.setup()
     { rev = "31026a1", src = "https://github.com/neovim/nvim-lspconfig" },
     { rev = "e27096b", src = "https://github.com/williamboman/mason.nvim" },
     { rev = "f75e877", src = "https://github.com/williamboman/mason-lspconfig.nvim" },
-    -- trouble
-    { rev = "bd67efe", src = "https://github.com/folke/trouble.nvim" },
+    -- glance (peek references/implementations)
+    { rev = "bf86d8b", src = "https://github.com/DNLHC/glance.nvim" },
     -- which key
     { rev = "3aab214", src = "https://github.com/folke/which-key.nvim" },
     -- treesitter
@@ -51,7 +51,7 @@ function M.setup()
   require("config.neotree")
   require("config.conform")
   require("config.lspconfig")
-  require("config.trouble")
+  require("config.glance")
   require("config.treesitter")
   require("config.vimmarkdown")
   require("config.toggleterm")

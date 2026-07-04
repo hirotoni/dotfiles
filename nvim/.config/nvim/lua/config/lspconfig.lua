@@ -65,8 +65,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local opts = { buffer = args.buf }
     vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-    vim.keymap.set("n", "gr", "<cmd>Trouble lsp_references toggle<cr>", opts)
-    vim.keymap.set("n", "gi", "<cmd>Trouble lsp_implementations toggle<cr>", opts)
+    vim.keymap.set("n", "gr", "<cmd>Glance references<cr>", opts)
+    vim.keymap.set("n", "gi", "<cmd>Glance implementations<cr>", opts)
 
     -- highlight references under cursor
     local client = vim.lsp.get_client_by_id(args.data.client_id)
