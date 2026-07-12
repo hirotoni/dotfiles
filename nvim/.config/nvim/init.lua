@@ -25,6 +25,11 @@ vim.opt.smartindent = true
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8
 
+-- show the file name at the top of each window (winbar) instead of the
+-- bottom status line; laststatus=0 hides the bottom bar entirely.
+vim.opt.laststatus = 0
+vim.opt.winbar = "%f %m"
+
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
 
