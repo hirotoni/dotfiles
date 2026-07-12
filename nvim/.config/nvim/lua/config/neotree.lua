@@ -1,5 +1,91 @@
 local sources = { "filesystem", "buffers", "document_symbols" }
 
+-- Delete a buffer from the buffers source without letting Neovim quit.
+-- Any window (on any tabpage) showing the buffer is first swapped to another
+-- listed buffer (or a fresh empty buffer), so deleting the last buffer never
+-- tears down the window and exits Neovim. The delete keeps force=false, so it
+-- refuses on modified/busy buffers (E89, E947, ...); on any such failure we
+-- restore the swapped windows (including each window's alternate/# buffer) and
+-- drop the throwaway buffer, then warn. The whole thing runs synchronously in
+-- one keymap callback, so the swap/restore causes no visible flicker.
+local function safe_buffer_delete(state)
+  local node = state.tree:get_node()
+  -- Skip nodes without a real buffer: message nodes, and directory nodes that
+  -- appear when buffers nest under paths (they carry no extra.bufnr).
+  if not node or node.type == "message" or not node.extra or not node.extra.bufnr then
+    return
+  end
+  local bufnr = node.extra.bufnr
+  -- The tree can outlive the buffer (already wiped elsewhere); skip stale nodes.
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+
+  -- Swap every window showing this buffer to a replacement. Only resolve a
+  -- replacement when a window actually needs it, to avoid creating an orphan
+  -- empty buffer otherwise.
+  local wins = vim.fn.win_findbuf(bufnr)
+  local created = nil
+  local alts = {}
+  if #wins > 0 then
+    -- Reuse another listed buffer, or create a single empty buffer shared
+    -- across every affected window.
+    local replacement = nil
+    for _, b in ipairs(vim.api.nvim_list_bufs()) do
+      if b ~= bufnr and vim.api.nvim_buf_is_valid(b) and vim.bo[b].buflisted then
+        replacement = b
+        break
+      end
+    end
+    if not replacement then
+      replacement = vim.api.nvim_create_buf(true, false)
+      created = replacement
+    end
+    -- Capture each window's alternate (#) buffer before swapping, so the
+    -- failure path can restore it (the swap would otherwise clobber it with
+    -- `replacement`, possibly the soon-to-be-deleted throwaway buffer).
+    for _, win in ipairs(wins) do
+      if vim.api.nvim_win_is_valid(win) then
+        alts[win] = vim.api.nvim_win_call(win, function()
+          return vim.fn.bufnr("#")
+        end)
+      end
+    end
+    for _, win in ipairs(wins) do
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_set_buf(win, replacement)
+      end
+    end
+  end
+
+  local ok, err = pcall(vim.api.nvim_buf_delete, bufnr, { force = false, unload = false })
+  if not ok then
+    -- Delete refused: restore the windows to the still-valid buffer (and their
+    -- original alternate buffer) and drop the throwaway empty buffer so it
+    -- doesn't leak, then surface the reason.
+    for _, win in ipairs(wins) do
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_win_set_buf(win, bufnr)
+        local a = alts[win]
+        if a and a > 0 and a ~= bufnr and vim.api.nvim_buf_is_valid(a) then
+          -- Restore the alternate without changing the current buffer or firing
+          -- autocmds: switch to `a` (current=a, alt=bufnr), then back to `bufnr`
+          -- (current=bufnr, alt=a).
+          vim.api.nvim_win_call(win, function()
+            vim.cmd("noautocmd keepjumps buffer " .. a)
+            vim.cmd("noautocmd keepjumps buffer " .. bufnr)
+          end)
+        end
+      end
+    end
+    if created and vim.api.nvim_buf_is_valid(created) then
+      vim.api.nvim_buf_delete(created, { force = true })
+    end
+    vim.notify(err, vim.log.levels.WARN)
+  end
+  require("neo-tree.sources.manager").refresh("buffers")
+end
+
 require("neo-tree").setup({
   close_if_last_window = true,
   sources = sources,
@@ -23,6 +109,14 @@ require("neo-tree").setup({
     window = {
       mappings = {
         ["<C-r>"] = "noop",
+      },
+    },
+  },
+  buffers = {
+    window = {
+      mappings = {
+        ["d"] = safe_buffer_delete,
+        ["bd"] = safe_buffer_delete,
       },
     },
   },
