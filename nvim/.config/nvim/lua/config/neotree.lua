@@ -1,21 +1,8 @@
-local sources = { "filesystem", "buffers", "git_status", "document_symbols" }
+local sources = { "filesystem", "buffers", "document_symbols" }
 
 require("neo-tree").setup({
   close_if_last_window = true,
   sources = sources,
-  event_handlers = {
-    -- document_symbols: always render fully expanded
-    -- nodes are loaded synchronously, so expand_all_nodes works after each render.
-    -- redraw() does not re-fire after_render, so this does not loop.
-    {
-      event = "after_render",
-      handler = function(state)
-        if state.name == "document_symbols" then
-          require("neo-tree.sources.common.commands").expand_all_nodes(state)
-        end
-      end,
-    },
-  },
   ---@diagnostic disable-next-line: missing-fields
   source_selector = {
     winbar = true,
@@ -104,16 +91,31 @@ vim.keymap.set("n", "<C-n>", function()
   end
   vim.cmd("Neotree last")
 end, opt)
--- `Neotree filesystem focus` has a bug: when a different source is visible,
+-- `Neotree <source> focus` has a bug: when a different source is visible,
 -- window_exists=false so set_current_win is skipped and async navigate never
 -- refocuses. Work around it by injecting the focus into the navigate callback.
-vim.keymap.set("n", "<C-S-n>", function()
+local function open_source(source)
   local manager = require("neo-tree.sources.manager")
   local renderer = require("neo-tree.ui.renderer")
-  -- Sync _last.source so <C-n> reopen returns to filesystem.
-  require("neo-tree.command")._last.source = "filesystem"
-  local state = manager.get_state("filesystem")
-  local focus = function() vim.api.nvim_set_current_win(state.winid) end
-  if renderer.window_exists(state) then focus()
-  else manager.navigate(state, state.path, nil, focus, false) end
+  -- Sync _last.source so <C-n> reopen returns to this source.
+  require("neo-tree.command")._last.source = source
+  local state = manager.get_state(source)
+  local focus = function()
+    vim.api.nvim_set_current_win(state.winid)
+  end
+  if renderer.window_exists(state) then
+    focus()
+  else
+    manager.navigate(state, state.path, nil, focus, false)
+  end
+end
+
+vim.keymap.set("n", "<C-S-n>", function()
+  open_source("filesystem")
+end, opt)
+vim.keymap.set("n", "<C-S-b>", function()
+  open_source("buffers")
+end, opt)
+vim.keymap.set("n", "<C-S-o>", function()
+  open_source("document_symbols")
 end, opt)
