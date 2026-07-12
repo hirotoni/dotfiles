@@ -20,6 +20,10 @@
       "rev": "89d8110ec15021ac9a03ff2317d27b900c45bf60",
       "src": "https://github.com/3rd/diagram.nvim"
     },
+    "flash.nvim": {
+      "rev": "b6346946d10d07998efee029fb0f7a593806d0cd",
+      "src": "https://github.com/folke/flash.nvim"
+    },
     "gitsigns.nvim": {
       "rev": "2038c666bd9d8a0b7349a0b6ee00dc83104b9ecf",
       "src": "https://github.com/lewis6991/gitsigns.nvim"

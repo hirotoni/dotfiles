@@ -46,6 +46,8 @@ function M.setup()
     { rev = "e73c00d", src = "https://github.com/lewis6991/hover.nvim" },
     -- git change  markers / hunk navigation
     { rev = "25050e4", src = "https://github.com/lewis6991/gitsigns.nvim" },
+    -- easymotion-style jump / search
+    { rev = "b634694", src = "https://github.com/folke/flash.nvim" },
   })
 
   require("config.neotree")
@@ -65,6 +67,7 @@ function M.setup()
   require("config.hover")
   require("config.gitsigns")
   require("config.githublink")
+  require("config.flash")
 end
 
 return M
