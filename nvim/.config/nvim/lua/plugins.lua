@@ -7,16 +7,15 @@ function M.setup()
     -- formatting management
     { rev = "dca1a19", src = "https://github.com/stevearc/conform.nvim" },
     -- Neo-tree
-    { rev = "e96fd85", src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-    { rev = "857c5ac", src = "https://github.com/nvim-lua/plenary.nvim" },
-    { rev = "10284fb", src = "https://github.com/nvim-tree/nvim-web-devicons" },
-    { rev = "857c5ac", src = "https://github.com/MunifTanjim/nui.nvim" },
+    { rev = "19d20a9", src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
+    { rev = "4fc505a", src = "https://github.com/nvim-tree/nvim-web-devicons" },
+    { rev = "de74099", src = "https://github.com/MunifTanjim/nui.nvim" },
     -- multi cursor
     { rev = "a6975e7", src = "https://github.com/mg979/vim-visual-multi" },
     -- lsp
     { rev = "31026a1", src = "https://github.com/neovim/nvim-lspconfig" },
-    { rev = "e27096b", src = "https://github.com/williamboman/mason.nvim" },
-    { rev = "f75e877", src = "https://github.com/williamboman/mason-lspconfig.nvim" },
+    { rev = "cb8445f", src = "https://github.com/williamboman/mason.nvim" },
+    { rev = "0c2823e", src = "https://github.com/williamboman/mason-lspconfig.nvim" },
     -- glance (peek references/implementations)
     { rev = "bf86d8b", src = "https://github.com/DNLHC/glance.nvim" },
     -- which key
@@ -32,7 +31,7 @@ function M.setup()
     { rev = "74b06c6", src = "https://github.com/nvim-lua/plenary.nvim" },
     { rev = "6fea601", src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim" },
     -- completion
-    { rev = "78336bc", src = "https://github.com/Saghen/blink.cmp" },
+    { rev = "d3874d2", src = "https://github.com/Saghen/blink.cmp" },
     { rev = "f29d8ba", src = "https://github.com/Saghen/blink.lib" },
     -- claude code
     { rev = "102d835", src = "https://github.com/coder/claudecode.nvim" },
@@ -44,7 +43,7 @@ function M.setup()
     -- pluggable hover (LSP / diagnostics / etc.)
     { rev = "e73c00d", src = "https://github.com/lewis6991/hover.nvim" },
     -- git change  markers / hunk navigation
-    { rev = "25050e4", src = "https://github.com/lewis6991/gitsigns.nvim" },
+    { rev = "2038c66", src = "https://github.com/lewis6991/gitsigns.nvim" },
     -- easymotion-style jump / search
     { rev = "b634694", src = "https://github.com/folke/flash.nvim" },
   })
