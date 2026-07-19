@@ -23,9 +23,8 @@ function M.setup()
     { rev = "3aab214", src = "https://github.com/folke/which-key.nvim" },
     -- treesitter
     { rev = "4916d65", src = "https://github.com/nvim-treesitter/nvim-treesitter" },
-    -- vim-markdown
-    { rev = "1bc9d0c", src = "https://github.com/preservim/vim-markdown" },
-    { rev = "12437cd", src = "https://github.com/godlygeek/tabular" },
+    -- markdown list editing (auto bullets, renumbering, checkboxes)
+    { rev = "81570b9", src = "https://github.com/bullets-vim/bullets.vim" },
     -- toggleterm
     { rev = "9a88eae", src = "https://github.com/akinsho/toggleterm.nvim" },
     -- telescope
@@ -55,7 +54,7 @@ function M.setup()
   require("config.lspconfig")
   require("config.glance")
   require("config.treesitter")
-  require("config.vimmarkdown")
+  require("config.markdown")
   require("config.toggleterm")
   require("config.telescope")
   require("config.blink")

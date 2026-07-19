@@ -2,7 +2,7 @@ require("conform").setup({
   formatters_by_ft = {
     lua = { "stylua" },
     go = { "goimports", "gofmt" },
-    markdown = { "prettier" },
+    markdown = { "prettier", "autocorrect" },
     sh = { "shfmt" },
     bash = { "shfmt" },
     json = { "prettier" },
@@ -11,6 +11,12 @@ require("conform").setup({
     vue = { "prettier" },
     css = { "prettier" },
     scss = { "prettier" },
+  },
+  formatters = {
+    -- insert spaces between CJK and Latin/numbers; rules tuned in .autocorrectrc
+    autocorrect = {
+      prepend_args = { "--config", vim.fn.stdpath("config") .. "/.autocorrectrc" },
+    },
   },
   -- auto-format on save
   format_on_save = {

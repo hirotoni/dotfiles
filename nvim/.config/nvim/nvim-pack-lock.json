@@ -8,6 +8,10 @@
       "rev": "f29d8bac6549bc1e7d699c83f680823d7def98bd",
       "src": "https://github.com/Saghen/blink.lib"
     },
+    "bullets.vim": {
+      "rev": "81570b98ca44b4100b3ddcf8d9ca74b9a9b0c884",
+      "src": "https://github.com/bullets-vim/bullets.vim"
+    },
     "claudecode.nvim": {
       "rev": "102d835c964069c9c5e37abaf05ae4f9c3ee6f00",
       "src": "https://github.com/coder/claudecode.nvim"
@@ -76,10 +80,6 @@
       "rev": "74b06c6c75e4eeb3108ec01852001636d85a932b",
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
-    "tabular": {
-      "rev": "12437cd1b53488e24936ec4b091c9324cafee311",
-      "src": "https://github.com/godlygeek/tabular"
-    },
     "telescope-fzf-native.nvim": {
       "rev": "6fea601bd2b694c6f2ae08a6c6fab14930c60e2c",
       "src": "https://github.com/nvim-telescope/telescope-fzf-native.nvim"
@@ -99,10 +99,6 @@
     "trouble.nvim": {
       "rev": "bd67efe408d4816e25e8491cc5ad4088e708a69a",
       "src": "https://github.com/folke/trouble.nvim"
-    },
-    "vim-markdown": {
-      "rev": "1bc9d0cd8e1cc3e901b0a49c2b50a843f1c89397",
-      "src": "https://github.com/preservim/vim-markdown"
     },
     "vim-visual-multi": {
       "rev": "a6975e7c1ee157615bbc80fc25e4392f71c344d4",

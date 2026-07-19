@@ -1,0 +1,5 @@
+# autocorrect config (used by conform.nvim markdown formatting)
+# spacing between CJK and Latin/numbers is the goal; leave punctuation as typed
+# (fullwidth rule converts , . : into ，。： which is Chinese convention, not Japanese)
+rules:
+  fullwidth: 0

@@ -1,5 +1,5 @@
-vim.g.vim_markdown_folding_disabled = 1
-vim.g.vim_markdown_frontmatter = 1
+-- bullets.vim: list continuation (Enter / o, numbered lists, checkboxes)
+vim.g.bullets_enabled_file_types = { "markdown" }
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "markdown",
@@ -8,6 +8,14 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.softtabstop = 2
     vim.bo.tabstop = 2
     vim.bo.expandtab = true
+
+    -- jump between headings
+    vim.keymap.set("n", "]]", function()
+      vim.fn.search("^#\\+ ", "W")
+    end, { buffer = true, desc = "Next heading" })
+    vim.keymap.set("n", "[[", function()
+      vim.fn.search("^#\\+ ", "bW")
+    end, { buffer = true, desc = "Previous heading" })
 
     vim.keymap.set("n", "gx", function()
       local line = vim.api.nvim_get_current_line()
