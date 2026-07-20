@@ -2,8 +2,7 @@ require("toggleterm").setup({
   direction = "float",
 })
 
-local Terminal = require("toggleterm.terminal").Terminal
-local shell_term = Terminal:new({ direction = "float", hidden = true })
+local shell_term = require("utils.float_term").new({})
 
 vim.keymap.set({ "n", "t" }, "<C-`>", function()
   shell_term:toggle()

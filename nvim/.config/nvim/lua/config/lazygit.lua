@@ -1,5 +1,4 @@
-local Terminal = require("toggleterm.terminal").Terminal
-local lazygit_term = Terminal:new({ cmd = "lazygit", direction = "float", hidden = true })
+local lazygit_term = require("utils.float_term").new({ cmd = "lazygit" })
 
 vim.keymap.set({ "n", "t" }, "<C-g>", function()
   lazygit_term:toggle()

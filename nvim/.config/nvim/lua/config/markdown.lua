@@ -76,7 +76,7 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set("n", "<leader>mp", function()
       local path = vim.fn.expand("%:p")
       if path == "" then
-        vim.notify("No file associated with this buffer", vim.log.level.WARN)
+        vim.notify("No file associated with this buffer", vim.log.levels.WARN)
         return
       end
       if vim.fn.executable("cmux") == 0 then

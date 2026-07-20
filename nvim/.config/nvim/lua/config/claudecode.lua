@@ -6,8 +6,6 @@ require("claudecode").setup({
   },
 })
 
-local Terminal = require("toggleterm.terminal").Terminal
-
 -- defer Terminal creation until the server port is resolved on first toggle
 local _claude_term = nil
 local function claude_term()
@@ -19,7 +17,7 @@ local function claude_term()
   if ok and server.state and server.state.port then
     env.CLAUDE_CODE_SSE_PORT = tostring(server.state.port)
   end
-  _claude_term = Terminal:new({ cmd = "claude", direction = "float", hidden = true, env = env })
+  _claude_term = require("utils.float_term").new({ cmd = "claude", env = env })
   return _claude_term
 end
 

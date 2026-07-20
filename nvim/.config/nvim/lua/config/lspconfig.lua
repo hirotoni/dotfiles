@@ -16,6 +16,10 @@ vim.lsp.config("*", {
   capabilities = require("blink.cmp").get_lsp_capabilities(),
 })
 
+-- runtime.version / diagnostics.globals / workspace.checkThirdParty below are also
+-- declared in .luarc.json (strict JSON, so it can't carry this note). The two have
+-- different scopes -- .luarc.json applies to the editing lua_ls (e.g. this repo's own
+-- config), this block applies to lua_ls started by nvim -- so keep both in sync.
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {

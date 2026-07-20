@@ -129,7 +129,6 @@ require("neo-tree").setup({
 -- workaround: quitting with unsaved buffers causes window reorder that moves neo-tree to the left
 -- close neo-tree first on QuitPre to prevent Neovim from rearranging windows
 -- reopen neo-tree via CursorMoved if quit was cancelled
-vim.opt.confirm = true
 
 local _neo_tree_closed_by_quitpre = false
 
