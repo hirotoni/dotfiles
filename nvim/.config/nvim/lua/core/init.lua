@@ -1,10 +1,4 @@
--- core: foundational modules (not per-plugin config), set up in explicit order.
-local M = {}
-
-function M.setup()
-  require("core.vimpack").setup()
-  require("core.im-select").setup()
-  require("core.autoreload").setup()
-end
-
-return M
+-- core: foundational modules (not per-plugin config), loaded in explicit order.
+require("core.vimpack")
+require("core.im-select")
+require("core.autoreload")

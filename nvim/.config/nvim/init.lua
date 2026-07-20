@@ -1,6 +1,6 @@
-require("core").setup() -- foundational modules (pack bootstrap, options-adjacent behavior)
-require("plugins").setup() -- per-package config, one file per package
-require("theme").setup() -- colorscheme and palette overrides
+require("core") -- foundational modules (pack bootstrap, options-adjacent behavior)
+require("plugins") -- per-package config, one file per package
+require("theme") -- colorscheme and palette overrides
 
 vim.opt.mouse = "a"
 vim.opt.number = true
