@@ -1,8 +1,12 @@
 -- Neo-tree
 vim.pack.add({
   { version = "19d20a9", src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
-  -- nvim-web-devicons: shared dependency (also used by telescope); declared once here
+  -- nvim-web-devicons / plenary: shared dependencies (also used by telescope);
+  -- declared here because neo-tree loads before telescope and requires them at
+  -- setup() (plenary.job). Declaring them in telescope only would leave them off
+  -- the runtimepath when neo-tree loads -> "module 'plenary.job' not found".
   { version = "4fc505a", src = "https://github.com/nvim-tree/nvim-web-devicons" },
+  { version = "74b06c6", src = "https://github.com/nvim-lua/plenary.nvim" },
   { version = "de74099", src = "https://github.com/MunifTanjim/nui.nvim" },
 })
 
