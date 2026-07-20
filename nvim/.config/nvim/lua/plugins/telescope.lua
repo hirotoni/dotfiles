@@ -1,3 +1,10 @@
+-- telescope
+vim.pack.add({
+  { version = "5063384", src = "https://github.com/nvim-telescope/telescope.nvim" },
+  { version = "74b06c6", src = "https://github.com/nvim-lua/plenary.nvim" },
+  { version = "6fea601", src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim" },
+})
+
 require("telescope").setup({
   defaults = {
     file_ignore_patterns = { ".git/" },

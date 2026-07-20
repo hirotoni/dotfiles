@@ -1,3 +1,8 @@
+-- treesitter
+vim.pack.add({
+  { version = "4916d65", src = "https://github.com/nvim-treesitter/nvim-treesitter" },
+})
+
 -- install parsers (on first launch or update)
 local ts = require("nvim-treesitter")
 ts.install({

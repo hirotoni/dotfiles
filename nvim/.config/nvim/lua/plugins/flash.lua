@@ -1,3 +1,8 @@
+-- easymotion-style jump / search
+vim.pack.add({
+  { version = "b634694", src = "https://github.com/folke/flash.nvim" },
+})
+
 local flash = require("flash")
 
 flash.setup({

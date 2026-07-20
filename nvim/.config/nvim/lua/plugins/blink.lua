@@ -1,3 +1,9 @@
+-- completion
+vim.pack.add({
+  { version = "d3874d2", src = "https://github.com/Saghen/blink.cmp" },
+  { version = "f29d8ba", src = "https://github.com/Saghen/blink.lib" },
+})
+
 require("blink.cmp").setup({
   keymap = {
     preset = "default",

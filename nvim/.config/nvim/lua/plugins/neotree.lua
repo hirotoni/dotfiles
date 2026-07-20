@@ -1,3 +1,11 @@
+-- Neo-tree
+vim.pack.add({
+  { version = "19d20a9", src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
+  -- nvim-web-devicons: shared dependency (also used by telescope); declared once here
+  { version = "4fc505a", src = "https://github.com/nvim-tree/nvim-web-devicons" },
+  { version = "de74099", src = "https://github.com/MunifTanjim/nui.nvim" },
+})
+
 local sources = { "filesystem", "buffers", "document_symbols" }
 
 -- Delete a buffer from the buffers source without letting Neovim quit.

@@ -1,3 +1,9 @@
+-- inline image / diagram rendering
+vim.pack.add({
+  { version = "44e0712", src = "https://github.com/3rd/image.nvim" },
+  { version = "89d8110", src = "https://github.com/3rd/diagram.nvim" },
+})
+
 require("image").setup({
   backend = "kitty",
   processor = "magick_cli",

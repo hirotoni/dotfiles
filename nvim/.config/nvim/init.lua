@@ -1,15 +1,6 @@
-require("plugins").setup()
-require("vimpack").setup()
-require("im-select").setup()
-require("autoreload").setup()
-
-require("tokyonight").setup({
-  transparent = true,
-  on_colors = function(colors)
-    colors.comment = "#8b92c0"
-  end,
-})
-vim.cmd("colorscheme tokyonight-night")
+require("core").setup() -- foundational modules (pack bootstrap, options-adjacent behavior)
+require("plugins").setup() -- per-package config, one file per package
+require("theme").setup() -- colorscheme and palette overrides
 
 vim.opt.mouse = "a"
 vim.opt.number = true

@@ -1,3 +1,10 @@
+-- lsp
+vim.pack.add({
+  { version = "31026a1", src = "https://github.com/neovim/nvim-lspconfig" },
+  { version = "cb8445f", src = "https://github.com/williamboman/mason.nvim" },
+  { version = "0c2823e", src = "https://github.com/williamboman/mason-lspconfig.nvim" },
+})
+
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = {

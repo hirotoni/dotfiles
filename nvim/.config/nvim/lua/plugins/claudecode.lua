@@ -1,3 +1,8 @@
+-- claude code
+vim.pack.add({
+  { version = "102d835", src = "https://github.com/coder/claudecode.nvim" },
+})
+
 require("claudecode").setup({
   -- delegate terminal open/close to toggleterm
   provider = "none",

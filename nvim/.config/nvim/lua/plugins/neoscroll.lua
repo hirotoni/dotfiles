@@ -1,3 +1,8 @@
+-- smooth scroll
+vim.pack.add({
+  { version = "c8d2997", src = "https://github.com/karb94/neoscroll.nvim" },
+})
+
 local neoscroll = require("neoscroll")
 
 neoscroll.setup({

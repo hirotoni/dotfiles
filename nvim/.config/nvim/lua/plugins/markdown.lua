@@ -1,3 +1,8 @@
+-- markdown list editing (auto bullets, renumbering, checkboxes)
+vim.pack.add({
+  { version = "81570b9", src = "https://github.com/bullets-vim/bullets.vim" },
+})
+
 -- bullets.vim: list continuation (Enter / o, numbered lists, checkboxes)
 vim.g.bullets_enabled_file_types = { "markdown" }
 
