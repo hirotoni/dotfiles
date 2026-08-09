@@ -24,6 +24,20 @@ Backlog.md の状態を読み、次に何を動かすかを決める。
 `Proposed` を `To Do` に上げるのは人間である。承認を代行しない。
 `In Review` を `Done` にするのも人間である。マージもレビューも代行しない。
 
+## 調整値
+
+上限は `.backlog/config.my.yml` の `improvement_loop` で設定する。手順 1 で読み、以降の判断にはこのファイルの値を使う。散文に書かれた数字を根拠にしない。
+
+| キー | 意味 | 既定値 |
+| --- | --- | --- |
+| `max_in_review` | この件数以上 `In Review` が溜まっていたら新規の引き渡しを止める | 3 |
+| `max_in_progress` | 同時に `In Progress` にできる件数 | 1 |
+| `max_redispatch` | 同じタスクを再引き渡しできる回数 | 2 |
+
+ファイルが存在しない場合、`improvement_loop` が無い場合、個別のキーが欠けている場合は、それぞれ既定値を使う。読めなかった旨を報告に 1 行添えること。値の変更は直接編集で行う。`backlog config set` は `config.yml` 側の設定を触るもので、このファイルには効かない。
+
+`.backlog/` は `.gitignore` 配下にあるため、このファイルはバージョン管理されない。新しい機体では存在しないのが正常であり、その場合は既定値で動く。
+
 ## 起動ごとの手順
 
 ### 1. 状態を読む
@@ -32,6 +46,7 @@ Backlog.md の状態を読み、次に何を動かすかを決める。
 backlog task list --plain
 git status --porcelain
 git branch --show-current
+cat .backlog/config.my.yml 2>/dev/null   # 無ければ調整値は既定値を使う
 ```
 
 進行中のサブエージェントがあるかも確認する。`TaskList` と `TaskOutput` を使う（schema が未ロードなら `ToolSearch` で `select:TaskList,TaskOutput` を取得する）。
@@ -48,7 +63,7 @@ git branch --show-current
   3. 実装が途中まで進んでいるなら、その到達点を引き渡し情報に含めて再度引き渡す（手順 4）。
   4. 何も進んでいないなら、`backlog task edit TASK-<n> -s "To Do" --comment '引き渡し先が消失したため To Do に戻した' --comment-author @orchestrator` で戻す。
 
-`In Progress` は同時に 1 件までとする。作業木を共有しているため、2 件同時に走らせるとブランチが混ざる。
+`In Progress` は同時に `max_in_progress` 件までとする。作業木を共有しているため、これを超えて走らせるとブランチが混ざる。
 
 ### 3. 次に引き渡すタスクを選ぶ
 
@@ -76,7 +91,7 @@ backlog task list --status "To Do" --labels 'blocked:needs-decision' --plain  # 
 引き渡しを止める条件：
 
 - `git status --porcelain` に出力がある（作業木が汚れている）。ユーザーの作業中の変更を stash も破棄もしない。状況を報告して今回の起動を終える。
-- `In Review` のタスクが 3 件以上溜まっている。レビューが追いついていない。新規の引き渡しをせず、レビュー待ちの一覧を報告する。
+- `In Review` のタスクが `max_in_review` 件以上溜まっている。レビューが追いついていない。新規の引き渡しをせず、レビュー待ちの一覧を報告する。
 - `To Do` に対象が無い。手順 6 に進む。
 
 ### 4. ブランチを作って引き渡す
@@ -120,8 +135,8 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 
 満たしていない場合の扱い：
 
-- 実装が不完全、範囲外、または検証が無い → `backlog task edit TASK-<n> -s "To Do" --comment '<不足点>' --comment-author @orchestrator` で戻し、次回の起動で再度引き渡す。同じタスクの再引き渡しは 2 回まで。
-- 2 回失敗した、または人間の判断が必要と報告された → `backlog task edit TASK-<n> --add-label 'blocked:needs-decision' -s "To Do" --comment '<未解決の判断事項>' --comment-author @orchestrator`。以降の選択から自動的に外れる。
+- 実装が不完全、範囲外、または検証が無い → `backlog task edit TASK-<n> -s "To Do" --comment '<不足点>' --comment-author @orchestrator` で戻し、次回の起動で再度引き渡す。同じタスクの再引き渡しは `max_redispatch` 回まで。
+- 再引き渡しを `max_redispatch` 回使い切った、または人間の判断が必要と報告された → `backlog task edit TASK-<n> --add-label 'blocked:needs-decision' -s "To Do" --comment '<未解決の判断事項>' --comment-author @orchestrator`。以降の選択から自動的に外れる。
 - 満たしている → そのまま `In Review` で置く。`Done` にしない。ブランチ名と差分の要約を報告する。
 
 ### 6. 次の起動を決めて報告する
@@ -149,5 +164,5 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 - 作業木が汚れているときにブランチを切り替えない。stash も reset もしない。
 - `Proposed` を `To Do` に上げない。`In Review` を `Done` にしない。
 - `.backlog/` 配下の md を直接編集しない。すべて `backlog` CLI 経由で行う。
-- 同時に 2 件以上を `In Progress` にしない。
+- `max_in_progress` 件を超えて `In Progress` にしない。
 - サブエージェントの完了を待つために短い間隔で起動を繰り返さない。通知で起こされる。
