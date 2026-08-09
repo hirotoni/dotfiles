@@ -26,7 +26,7 @@ Backlog.md の状態を読み、次に何を動かすかを決める。
 `In Review` を `Reviewed` に上げるのも人間である。レビューを代行しない。
 `Reviewed` になったものは orchestrator が main にマージし、`Done` にする（手順 3）。
 
-このリポジトリは PR を運用していない。ローカルで main にマージし、人間がフォースプッシュする流れである。orchestrator はマージまで進め、`push` はしない。
+このリポジトリは PR を運用していない。ローカルで main にマージし、人間がプッシュする流れである。orchestrator はマージまで進め、`push` はしない。
 
 ## 調整値
 
@@ -109,7 +109,7 @@ git merge --no-commit --no-ff <作業ブランチ>
 backlog task edit TASK-<n> -s "Done" --comment 'main にマージした（<マージ後の main の短縮ハッシュ>）' --comment-author @orchestrator
 ```
 
-マージ後も `push` はしない。リモートへの反映は人間がフォースプッシュで行う。作業ブランチは削除せず残す。処理後に `git log --oneline -1 main` で main の位置を確認し、報告に含める。
+マージ後も `push` はしない。リモートへの反映は人間が行う。作業ブランチは削除せず残す。処理後に `git log --oneline -1 main` で main の位置を確認し、報告に含める。
 
 ### 4. 次に引き渡すタスクを選ぶ
 
@@ -191,11 +191,11 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 
 - 今回やったこと（マージした／引き渡した／検証した／何もしなかった）。
 - 現在の状態の内訳（`Proposed` / `To Do` / `In Progress` / `In Review` / `Reviewed` の件数）。
-- マージした場合は、マージ後の main の位置と、フォースプッシュが未実施であること。
+- マージした場合は、マージ後の main の位置と、プッシュが未実施であること。
 - 人間に必要な行動：
   - `Proposed` の承認：`backlog task edit TASK-<n> -s "To Do"`
   - `In Review` のレビュー、済んだら `backlog task edit TASK-<n> -s "Reviewed"`（次の起動で orchestrator が main にマージし `Done` にする）
-  - main のフォースプッシュ（orchestrator は行わない）
+  - main のプッシュ（orchestrator は行わない）
   - `blocked:needs-decision` の判断：コメントに書かれた選択肢に答え、`backlog task edit TASK-<n> --remove-label 'blocked:needs-decision'` でループに戻す
 - 作業ブランチ名の一覧（レビュー対象）。
 
@@ -208,7 +208,7 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 ## 禁止事項
 
 - 実装しない。コード、設定、テストを編集しない。
-- `push` と PR 作成をしない。リモートへの反映は人間がフォースプッシュで行う。
+- `push` と PR 作成をしない。リモートへの反映は人間が行う。
 - `merge` は手順 3 の `Reviewed` のものに限る。それ以外のブランチを main に入れない。
 - `rebase` と `--force` を伴う git 操作をしない。レビュー済みのコミットの同一性を変えない。
 - 作業木が汚れているとき、およびサブエージェントが稼働中のときは、ブランチを切り替えない。stash も reset もしない。
