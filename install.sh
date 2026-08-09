@@ -14,6 +14,28 @@ usage() {
 TARGET="$1"
 [[ "$TARGET" != "zsh" && "$TARGET" != "nvim" && "$TARGET" != "cmux" ]] && usage
 
+# ---------- Homebrew ----------
+# Homebrew を入れただけでは brew は PATH に無い（shellenv の追記は利用者任せで、
+# この dotfiles の管理外）。README の手順だけで動くようここで解決する。
+if ! command -v brew >/dev/null 2>&1; then
+  for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [[ -x "$brew_bin" ]]; then
+      eval "$("$brew_bin" shellenv)"
+      break
+    fi
+  done
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+  cat >&2 <<'EOS'
+Error: Homebrew not found.
+Install it first, then re-run this script:
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+See https://brew.sh for details.
+EOS
+  exit 1
+fi
+
 brew bundle --file="$DOTFILES_DIR/Brewfile"
 
 backup_dir="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"

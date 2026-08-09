@@ -1,3 +1,6 @@
+# abbr は plugins/zsh-abbr.zsh が読み込む。Homebrew 未導入だと未定義になる
+command -v abbr >/dev/null 2>&1 || return
+
 abbr -S --quieter mmt="memov2 todos new"
 abbr -S --quieter mmtw="memov2 todos weekly"
 
