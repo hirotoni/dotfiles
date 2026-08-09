@@ -21,9 +21,15 @@ is stowed to `~/.config/nvim`.
 
 Verified present via Homebrew: `nvim` (0.12.2), `tmux`, `fd` and `rg`
 (telescope pickers hard-require them), `lazygit`, `stylua`. First launch
-on a clean machine needs network + a C compiler: `vim.pack` git-clones all
-28 plugins and nvim-treesitter compiles parsers, automatically and
-headless — no prompt, takes a few minutes.
+on a clean machine needs network + a C compiler: `vim.pack` git-clones the
+26 plugins declared under `lua/` and nvim-treesitter compiles parsers,
+automatically and headless — no prompt, takes a few minutes.
+
+On a machine that has been running this config for a while `driver.sh check`
+reports `plugins=27`, not 26: `vim.pack.get()` also counts `trouble.nvim`,
+which is still on disk and in `nvim-pack-lock.json` but is no longer declared
+anywhere under `lua/`. The 26/27 gap is expected — don't "fix" one number to
+match the other.
 
 ## Run (agent path) — the driver
 
@@ -31,16 +37,17 @@ headless — no prompt, takes a few minutes.
 .claude/skills/run-nvim/driver.sh smoke
 ```
 
-Headless config-load check, then a full tmux flow: open `init.lua`, toggle
-neo-tree (`C-n`), open telescope find-files (`\ff`), run `:PackList`,
-asserting on pane contents at each step. Prints `SMOKE OK` and the
-snapshot directory. Run it after any config change.
+Syntax check, headless config-load check, then a full tmux flow: open
+`init.lua`, toggle neo-tree (`C-n`), open telescope find-files (`\ff`),
+run `:PackList`, asserting on pane contents at each step. Prints `SMOKE OK`
+and the snapshot directory. Run it after any config change.
 
 Individual commands for driving nvim by hand:
 
 ```bash
 D=.claude/skills/run-nvim/driver.sh
-$D check              # headless: prints CONFIG_OK colorscheme=… plugins=28
+$D check              # headless: prints CONFIG_OK colorscheme=… plugins=27
+$D syntax             # headless: loadfile() every .lua in this unit
 $D start init.lua     # nvim in a detached 120x35 tmux session 'nvim-driver'
 $D keys C-n           # send tmux key names (C-n, Escape, Enter, …)
 $D type ':PackList'   # send literal text; follow with: $D keys Enter
@@ -56,10 +63,9 @@ Snapshots land in `$TMPDIR/nvim-driver-snaps/` (override with `SNAPDIR=`).
 A change to one module under `lua/` doesn't need the full TUI:
 
 ```bash
-# syntax-check every lua file (no luac on this machine; use nvim itself)
-for f in init.lua lua/*.lua lua/config/*.lua; do
-  nvim -es --headless "+lua assert(loadfile('$f'))" +q || echo "SYNTAX FAIL: $f"
-done
+# syntax-check every lua file: prints "SYNTAX OK: <n> file(s) checked", or a
+# "SYNTAX FAIL: <path>" line per bad file, and exits non-zero on any failure
+.claude/skills/run-nvim/driver.sh syntax
 
 # formatting gate (uses .stylua.toml)
 stylua --check .
@@ -68,6 +74,15 @@ stylua --check .
 # (XDG_CONFIG_HOME must be the dir CONTAINING nvim/, i.e. .config — one level up)
 XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless "+lua print(vim.g.colors_name)" +qa!
 ```
+
+`syntax` and `check` need no tmux, and behave identically from zsh and bash
+because `driver.sh` runs under its own bash shebang. Keep the syntax check in
+`driver.sh` rather than pasting a `for f in init.lua lua/*.lua …` loop back
+into this file: that inline form is what silently stopped checking anything
+when `lua/` was restructured (zsh aborts the loop on `no matches found`, bash
+hands the unexpanded pattern to nvim). `syntax` discovers files with `find`
+and aborts with `SYNTAX ABORT` if it finds none, so the next restructure
+fails loudly instead of passing vacuously.
 
 ## Run (human path)
 
@@ -102,8 +117,8 @@ nvim --headless "+lua print('CLEAN_OK plugins=' .. #vim.pack.get())" +qa!
 - **telescope-fzf-native is cloned but never built/loaded** (no
   `load_extension("fzf")` in the config), so the missing `build/` dir is not an
   error.
-- **`luac` is not installed** (only `luajit`); syntax-check with
-  `nvim -es --headless "+lua assert(loadfile(...))"` as shown above.
+- **`luac` is not installed** (only `luajit`), so `driver.sh syntax` uses nvim
+  itself as the parser: `nvim -es --headless "+lua loadfile(…)"` per file.
 
 ## Troubleshooting
 
