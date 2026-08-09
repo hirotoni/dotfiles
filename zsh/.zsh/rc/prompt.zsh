@@ -1,10 +1,14 @@
 # zsh-git-prompt
 alias python='python3'
 autoload -Uz colors && colors
-source "$HOMEBREW_PREFIX/opt/zsh-git-prompt/zshrc.sh"
+
+_git_prompt_plugin="$HOMEBREW_PREFIX/opt/zsh-git-prompt/zshrc.sh"
+[[ -r "$_git_prompt_plugin" ]] && source "$_git_prompt_plugin"
+unset _git_prompt_plugin
 
 git_prompt() {
-  if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then
+  # git_super_status は zsh-git-prompt が定義する。未導入なら git 情報を省く
+  if (($+functions[git_super_status])) && [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]; then
     PROMPT="%F{green}%n%f:%F{blue}%~%f $(git_super_status) "$'\n'"%# "
   else
     PROMPT="%F{green}%n%f:%F{blue}%~%f "$'\n'"%# "
