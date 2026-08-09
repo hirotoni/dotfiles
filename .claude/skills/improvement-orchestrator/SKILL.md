@@ -6,7 +6,7 @@ description: Backlog.md のタスク状態を見て improvement ループを制�
 # improvement-orchestrator
 
 Backlog.md の状態を読み、次に何を動かすかを決める。
-1 回の起動でやることは「状態を読む」「必要なら 1 件引き渡す」「次の起動を決める」の 3 つだけである。
+1 回の起動でやることは「状態を読む」「レビュー済みをマージする」「必要なら 1 件引き渡す」「次の起動を決める」の 4 つだけである。
 
 **自分で実装しない。** コードの編集、テストの修正、リファクタは improvement-work の仕事である。
 引き渡しのために調べる（対象ファイルの特定、依存の確認、リポジトリ規約の抽出）のは構わない。
@@ -19,10 +19,14 @@ Backlog.md の状態を読み、次に何を動かすかを決める。
 | `To Do` | 着手が承認された | 人間 |
 | `In Progress` | 作業ブランチに引き渡し済み | **orchestrator が動かす** |
 | `In Review` | 実装がブランチに乗り、レビュー待ち | improvement-work |
-| `Done` | レビューとマージが済んだ | 人間 |
+| `Reviewed` | 人間のレビューが済み、マージを待っている | 人間 |
+| `Done` | main にマージ済み | **orchestrator が動かす** |
 
 `Proposed` を `To Do` に上げるのは人間である。承認を代行しない。
-`In Review` を `Done` にするのも人間である。マージもレビューも代行しない。
+`In Review` を `Reviewed` に上げるのも人間である。レビューを代行しない。
+`Reviewed` になったものは orchestrator が main にマージし、`Done` にする（手順 3）。
+
+このリポジトリは PR を運用していない。ローカルで main にマージし、人間がフォースプッシュする流れである。orchestrator はマージまで進め、`push` はしない。
 
 ## 調整値
 
@@ -55,17 +59,59 @@ cat .backlog/config.my.yml 2>/dev/null   # 無ければ調整値は既定値を�
 
 `In Progress` のタスクがある場合：
 
-- 対応するサブエージェントが動いている → 今回の起動でやることはない。手順 6 に進む。
-- サブエージェントが完了している → 手順 5 の検証に進む。
+- 対応するサブエージェントが動いている → 今回の起動でやることはない。手順 7 に進む。
+- サブエージェントが完了している → 手順 6 の検証に進む。
 - サブエージェントが存在しない（前回のセッションが落ちた、中断された） → 復旧する。
   1. `backlog task view TASK-<n> --plain` で notes と plan を読む。
   2. 作業ブランチの有無と `git log <branch> --oneline` で到達点を確認する。
-  3. 実装が途中まで進んでいるなら、その到達点を引き渡し情報に含めて再度引き渡す（手順 4）。
+  3. 実装が途中まで進んでいるなら、その到達点を引き渡し情報に含めて再度引き渡す（手順 5）。
   4. 何も進んでいないなら、`backlog task edit TASK-<n> -s "To Do" --comment '引き渡し先が消失したため To Do に戻した' --comment-author @orchestrator` で戻す。
 
 `In Progress` は同時に `max_in_progress` 件までとする。作業木を共有しているため、これを超えて走らせるとブランチが混ざる。
 
-### 3. 次に引き渡すタスクを選ぶ
+### 3. レビュー済みのものを main にマージする
+
+`Reviewed` は人間のレビューが済み、マージを待っている状態である。手順 4 の選定より先に処理する。ここで main が進めば、後続の引き渡しは新しい main を基点にできる。
+
+```bash
+backlog task list --status "Reviewed" --plain
+```
+
+対象が無ければ手順 4 に進む。
+
+マージの前提条件。1 つでも欠けたらマージせず、状況を報告して今回の起動を終える。
+
+- `git status --porcelain` が空である。汚れているときはブランチを切り替えない。stash も reset もしない。
+- サブエージェントが動いていない。作業木を共有しているため、稼働中に main へ切り替えると相手の作業を壊す。
+- 対応する作業ブランチが存在し、`git log main..<作業ブランチ>` にコミットがある。
+
+対象は 1 件ずつ処理する。まず早送りを試す。
+
+```bash
+git switch main
+git merge --ff-only <作業ブランチ>
+```
+
+早送りできない場合（main が先に進んでいる）は、衝突の有無を先に確かめる。
+
+```bash
+git merge --no-commit --no-ff <作業ブランチ>
+```
+
+- 衝突した → `git merge --abort` で元に戻す。タスクは `Reviewed` のまま残し、衝突したファイルを報告する。解消は人間に委ねる。次の対象には進まない。
+- 衝突しない → そのままコミットしてマージを完了する。
+
+`rebase` は使わない。人間がレビューしたコミットの同一性が変わるためである。`--force` を伴う操作もしない。
+
+マージが完了したタスクだけ `Done` にする。
+
+```bash
+backlog task edit TASK-<n> -s "Done" --comment 'main にマージした（<マージ後の main の短縮ハッシュ>）' --comment-author @orchestrator
+```
+
+マージ後も `push` はしない。リモートへの反映は人間がフォースプッシュで行う。作業ブランチは削除せず残す。処理後に `git log --oneline -1 main` で main の位置を確認し、報告に含める。
+
+### 4. 次に引き渡すタスクを選ぶ
 
 `In Progress` が無いときだけ選ぶ。`To Do` の中から次の規則で 1 件選ぶ。
 
@@ -92,9 +138,9 @@ backlog task list --status "To Do" --labels 'blocked:needs-decision' --plain  # 
 
 - `git status --porcelain` に出力がある（作業木が汚れている）。ユーザーの作業中の変更を stash も破棄もしない。状況を報告して今回の起動を終える。
 - `In Review` のタスクが `max_in_review` 件以上溜まっている。レビューが追いついていない。新規の引き渡しをせず、レビュー待ちの一覧を報告する。
-- `To Do` に対象が無い。手順 6 に進む。
+- `To Do` に対象が無い。手順 7 に進む。
 
-### 4. ブランチを作って引き渡す
+### 5. ブランチを作って引き渡す
 
 ```bash
 git switch <デフォルトブランチ>
@@ -118,7 +164,7 @@ backlog task edit TASK-<n> -s "In Progress" -a @improvement-work --plain
 
 引き渡した内容の要点は `backlog task edit TASK-<n> --append-notes '<引き渡し内容>'` に残す。セッションが落ちても手順 2 で復旧できる。
 
-### 5. 完了を検証する
+### 6. 完了を検証する
 
 サブエージェントの報告をそのまま信じない。次を自分で確認する。
 
@@ -139,15 +185,17 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 - 再引き渡しを `max_redispatch` 回使い切った、または人間の判断が必要と報告された → `backlog task edit TASK-<n> --add-label 'blocked:needs-decision' -s "To Do" --comment '<未解決の判断事項>' --comment-author @orchestrator`。以降の選択から自動的に外れる。
 - 満たしている → そのまま `In Review` で置く。`Done` にしない。ブランチ名と差分の要約を報告する。
 
-### 6. 次の起動を決めて報告する
+### 7. 次の起動を決めて報告する
 
 報告に含めるもの：
 
-- 今回やったこと（引き渡した／検証した／何もしなかった）。
-- 現在の状態の内訳（`Proposed` / `To Do` / `In Progress` / `In Review` の件数）。
+- 今回やったこと（マージした／引き渡した／検証した／何もしなかった）。
+- 現在の状態の内訳（`Proposed` / `To Do` / `In Progress` / `In Review` / `Reviewed` の件数）。
+- マージした場合は、マージ後の main の位置と、フォースプッシュが未実施であること。
 - 人間に必要な行動：
   - `Proposed` の承認：`backlog task edit TASK-<n> -s "To Do"`
-  - `In Review` のレビューとマージ、済んだら `backlog task edit TASK-<n> -s "Done"`
+  - `In Review` のレビュー、済んだら `backlog task edit TASK-<n> -s "Reviewed"`（次の起動で orchestrator が main にマージし `Done` にする）
+  - main のフォースプッシュ（orchestrator は行わない）
   - `blocked:needs-decision` の判断：コメントに書かれた選択肢に答え、`backlog task edit TASK-<n> --remove-label 'blocked:needs-decision'` でループに戻す
 - 作業ブランチ名の一覧（レビュー対象）。
 
@@ -160,9 +208,11 @@ git diff <デフォルトブランチ>..<作業ブランチ> --stat
 ## 禁止事項
 
 - 実装しない。コード、設定、テストを編集しない。
-- `push`、`merge`、PR 作成をしない。ブランチはローカルに残し、レビューとマージは人間に委ねる。
-- 作業木が汚れているときにブランチを切り替えない。stash も reset もしない。
-- `Proposed` を `To Do` に上げない。`In Review` を `Done` にしない。
+- `push` と PR 作成をしない。リモートへの反映は人間がフォースプッシュで行う。
+- `merge` は手順 3 の `Reviewed` のものに限る。それ以外のブランチを main に入れない。
+- `rebase` と `--force` を伴う git 操作をしない。レビュー済みのコミットの同一性を変えない。
+- 作業木が汚れているとき、およびサブエージェントが稼働中のときは、ブランチを切り替えない。stash も reset もしない。
+- `Proposed` を `To Do` に上げない。`In Review` を `Reviewed` に上げない。`Reviewed` 以外を `Done` にしない。
 - `.backlog/` 配下の md を直接編集しない。すべて `backlog` CLI 経由で行う。
 - `max_in_progress` 件を超えて `In Progress` にしない。
 - サブエージェントの完了を待つために短い間隔で起動を繰り返さない。通知で起こされる。
