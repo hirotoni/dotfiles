@@ -4,6 +4,9 @@ vim.pack.add({
 })
 
 require("conform").setup({
+  -- a formatter added here must also be declared in the dotfiles Brewfile (repo root):
+  -- conform silently skips a formatter whose binary is missing, so an undeclared one
+  -- surfaces as "saving does nothing" rather than as an error
   formatters_by_ft = {
     lua = { "stylua" },
     go = { "goimports", "gofmt" },
