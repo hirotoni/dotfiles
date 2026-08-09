@@ -32,4 +32,13 @@ fi
 autoload -Uz compinit && compinit -u -C
 
 # ---------- anyenv ----------
-command -v anyenv >/dev/null 2>&1 && eval "$(anyenv init -)"
+# `anyenv install --init` を済ませていないマシンでは `anyenv init -` が
+# 「definition root が無い」と警告して exit 1 する。起動のたびに警告を並べない
+# よう、成功したときだけ eval する。anyenv を使うマシンでは一度だけ
+# `anyenv install --init` を実行すること。
+if command -v anyenv >/dev/null 2>&1; then
+  if _anyenv_init=$(anyenv init - 2>/dev/null); then
+    eval "$_anyenv_init"
+  fi
+  unset _anyenv_init
+fi
