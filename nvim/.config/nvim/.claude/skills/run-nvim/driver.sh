@@ -2,6 +2,7 @@
 # Driver for running/driving this Neovim config inside tmux.
 # Usage: driver.sh <command> [args]
 #   check              headless config-load smoke check (no tmux needed)
+#   syntax             loadfile() every .lua file in this unit (no tmux needed)
 #   start [file]       launch nvim in a detached tmux session (120x35)
 #   keys <keys...>     send tmux key names (e.g. C-n, Escape, Enter)
 #   type <text>        send literal text (e.g. ':PackList' — follow with keys Enter)
@@ -50,6 +51,41 @@ check() {
     +qa! 2>&1
 }
 
+# Every .lua file in this unit, DISCOVERED rather than listed. A hard-coded
+# glob (`lua/*.lua lua/config/*.lua`) is how this check silently went to zero
+# once lua/ was restructured: zsh aborts the loop on `no matches found`, bash
+# passes the unexpanded pattern through. find + the empty guard in syntax()
+# below mean a future restructure fails loudly instead of checking nothing.
+# -H: invoked through the stow path, $UNIT is itself the ~/.config/nvim
+# symlink, and find would not descend into it without being told to.
+lua_files() { find -H "$UNIT" -name '*.lua' -type f | sort; }
+
+syntax() {
+  local files=() f rel failed=0
+  while IFS= read -r f; do files+=("$f"); done < <(lua_files)
+
+  if [ "${#files[@]}" -eq 0 ]; then
+    echo "SYNTAX ABORT: no .lua file found under $UNIT — the search is broken, not the config" >&2
+    return 1
+  fi
+
+  # no luac on this machine (only luajit), so nvim itself is the parser
+  for f in "${files[@]}"; do
+    rel=${f#"$UNIT"/}
+    if ! nvim -es --headless \
+      "+lua local _, err = loadfile('$f') if err then io.stderr:write(err .. '\n') os.exit(1) end" +q; then
+      echo "SYNTAX FAIL: $rel"
+      failed=$((failed + 1))
+    fi
+  done
+
+  if [ "$failed" -gt 0 ]; then
+    echo "SYNTAX: $failed of ${#files[@]} file(s) failed"
+    return 1
+  fi
+  echo "SYNTAX OK: ${#files[@]} file(s) checked"
+}
+
 assert_pane() { # assert_pane <pattern> <label>
   if text | grep -q "$1"; then
     echo "PASS: $2"
@@ -59,6 +95,9 @@ assert_pane() { # assert_pane <pattern> <label>
 }
 
 smoke() {
+  echo "== syntax check =="
+  syntax
+
   echo "== headless check =="
   check | grep CONFIG_OK || { echo "FAIL: headless config load"; exit 1; }
 
@@ -89,6 +128,7 @@ smoke() {
 cmd=${1:-smoke}; shift || true
 case "$cmd" in
   check) check ;;
+  syntax) syntax ;;
   start) start "${1:-}" ;;
   keys) keys "$@" ;;
   type) type_ "$1" ;;
