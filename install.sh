@@ -41,9 +41,8 @@ brew bundle --file="$DOTFILES_DIR/Brewfile"
 backup_dir="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 backed_up=0
 
-# 退避は stow より前に走るので、stow が衝突で失敗すると（set -e で即 exit）
-# 退避先を知らせないまま終わる。退避先はフラット配置で移動元のパスを復元
-# できないため、失敗時に退避先を再掲して利用者が自力で戻せるようにする。
+# 退避は stow より前に走る。トラップが無いと、stow が衝突で失敗した時点で
+# set -e が即 exit し、利用者は設定がどこへ移されたか知らないまま取り残される。
 report_backup_dir() {
   local status=$?
   if [[ $status -ne 0 && $backed_up -eq 1 ]]; then
@@ -52,8 +51,8 @@ report_backup_dir() {
 }
 trap report_backup_dir EXIT
 
-# 退避対象はパッケージが $HOME に持ち込む最上位のパス。stow のパッケージ名は
-# 常に $TARGET と等しい。
+# 退避対象は、パッケージが $HOME に持ち込む最上位のパスを列挙する。葉のファイル
+# 単位にすると、パッケージにファイルが増えたときに列挙漏れが再発する。
 case "$TARGET" in
   zsh) backup_targets=(.zshrc .zshenv .zsh) ;;
   nvim) backup_targets=(.config/nvim) ;;
@@ -69,6 +68,8 @@ for target in "${backup_targets[@]}"; do
   fi
 done
 
+# stow のパッケージ名として $TARGET をそのまま渡せるのは、リポジトリ直下の
+# パッケージディレクトリ名が受け付ける target 名と一致しているため。
 stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' "$TARGET"
 
 if [[ "$TARGET" == "zsh" ]]; then
