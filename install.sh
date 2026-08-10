@@ -39,38 +39,42 @@ fi
 brew bundle --file="$DOTFILES_DIR/Brewfile"
 
 backup_dir="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
+backed_up=0
 
+# 退避は stow より前に走るので、stow が衝突で失敗すると（set -e で即 exit）
+# 退避先を知らせないまま終わる。退避先はフラット配置で移動元のパスを復元
+# できないため、失敗時に退避先を再掲して利用者が自力で戻せるようにする。
+report_backup_dir() {
+  local status=$?
+  if [[ $status -ne 0 && $backed_up -eq 1 ]]; then
+    echo "Install failed. Your original files are in: $backup_dir" >&2
+  fi
+}
+trap report_backup_dir EXIT
+
+# 退避対象はパッケージが $HOME に持ち込む最上位のパス。stow のパッケージ名は
+# 常に $TARGET と等しい。
 case "$TARGET" in
-  zsh)
-    for target in .zshrc .zshenv .zsh; do
-      if [[ -e "$HOME/$target" && ! -L "$HOME/$target" ]]; then
-        mkdir -p "$backup_dir"
-        mv "$HOME/$target" "$backup_dir/"
-      fi
-    done
-    stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' zsh
-    echo "Done! Run 'exec zsh' to reload."
-    ;;
-  nvim)
-    if [[ -e "$HOME/.config/nvim" && ! -L "$HOME/.config/nvim" ]]; then
-      mkdir -p "$backup_dir"
-      mv "$HOME/.config/nvim" "$backup_dir/"
-    fi
-    stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' nvim
-    echo "Done!"
-    ;;
-  cmux)
-    if [[ -e "$HOME/.config/cmux" && ! -L "$HOME/.config/cmux" ]]; then
-      mkdir -p "$backup_dir"
-      mv "$HOME/.config/cmux" "$backup_dir/"
-    fi
-    if [[ -e "$HOME/.hammerspoon" && ! -L "$HOME/.hammerspoon" ]]; then
-      mkdir -p "$backup_dir"
-      mv "$HOME/.hammerspoon" "$backup_dir/"
-    fi
-    stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' cmux
-    echo "Done!"
-    ;;
+  zsh) backup_targets=(.zshrc .zshenv .zsh) ;;
+  nvim) backup_targets=(.config/nvim) ;;
+  cmux) backup_targets=(.config/cmux .config/ghostty .hammerspoon) ;;
 esac
+
+for target in "${backup_targets[@]}"; do
+  if [[ -e "$HOME/$target" && ! -L "$HOME/$target" ]]; then
+    mkdir -p "$backup_dir"
+    mv "$HOME/$target" "$backup_dir/"
+    backed_up=1
+    echo "Backed up: $HOME/$target -> $backup_dir/$(basename "$target")"
+  fi
+done
+
+stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' "$TARGET"
+
+if [[ "$TARGET" == "zsh" ]]; then
+  echo "Done! Run 'exec zsh' to reload."
+else
+  echo "Done!"
+fi
 
 (cd "$DOTFILES_DIR" && pre-commit install)
