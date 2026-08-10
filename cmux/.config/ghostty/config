@@ -1,3 +1,8 @@
+# このファイルを読むのは Ghostty.app ではなく cmux である。cmux は libghostty を
+# 同梱していて、ghostty と同じ設定書式をこのパスから読む（cmux 自身のメニューに
+# "Ghostty Settings" があるのはこのため）。そのため Brewfile は cask "cmux" だけを
+# 宣言していて、cask "ghostty" は意図的に入れていない。
+
 # font-family = HackNerdFont
 # font-size = 13
 # theme = dark:GruvboxDark,light:GruvboxLight
