@@ -1,4 +1,3 @@
-# zsh-git-prompt
 alias python='python3'
 autoload -Uz colors && colors
 
@@ -29,7 +28,6 @@ precmd() {
   add_newline
 }
 
-# group completion candidates
 zstyle ':completion:*' format '%B%F{blue}%d%f%b'
 zstyle ':completion:*' group-name ''
 
