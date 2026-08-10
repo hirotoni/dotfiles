@@ -1,4 +1,3 @@
--- formatting management
 vim.pack.add({
   { version = "dca1a19", src = "https://github.com/stevearc/conform.nvim" },
 })
@@ -21,12 +20,10 @@ require("conform").setup({
     scss = { "prettier" },
   },
   formatters = {
-    -- insert spaces between CJK and Latin/numbers; rules tuned in .autocorrectrc
     autocorrect = {
       prepend_args = { "--config", vim.fn.stdpath("config") .. "/.autocorrectrc" },
     },
   },
-  -- auto-format on save
   format_on_save = {
     timeout_ms = 3000,
     lsp_format = "fallback",

@@ -1,4 +1,3 @@
--- markdown list editing (auto bullets, renumbering, checkboxes)
 vim.pack.add({
   { version = "81570b9", src = "https://github.com/bullets-vim/bullets.vim" },
 })
@@ -14,7 +13,6 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.tabstop = 2
     vim.bo.expandtab = true
 
-    -- jump between headings
     vim.keymap.set("n", "]]", function()
       vim.fn.search("^#\\+ ", "W")
     end, { buffer = true, desc = "Next heading" })
@@ -41,7 +39,6 @@ vim.api.nvim_create_autocmd("FileType", {
             return
           end
 
-          -- resolve relative path from the buffer's directory
           local anchor = url:match("#(.+)$")
           local buf_dir = vim.fn.expand("%:p:h")
           local resolved = vim.fn.resolve(buf_dir .. "/" .. path)
@@ -60,7 +57,6 @@ vim.api.nvim_create_autocmd("FileType", {
         pos = me + 1
       end
 
-      -- open plain URL (https://... etc.) under cursor
       local pos2 = 1
       while true do
         local ms, me, url = line:find("(https?://[^%s%)%]\"']+)", pos2)
@@ -77,7 +73,6 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.cmd("normal! gx")
     end, { buffer = true, desc = "Open markdown link" })
 
-    -- open current markdown in a separate pane via cmux markdown open
     vim.keymap.set("n", "<leader>mp", function()
       local path = vim.fn.expand("%:p")
       if path == "" then

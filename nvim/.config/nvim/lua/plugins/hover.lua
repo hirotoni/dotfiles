@@ -1,4 +1,3 @@
--- pluggable hover (LSP / diagnostics / etc.)
 vim.pack.add({
   { version = "e73c00d", src = "https://github.com/lewis6991/hover.nvim" },
 })

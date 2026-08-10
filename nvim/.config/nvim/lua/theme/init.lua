@@ -1,6 +1,3 @@
--- theme: colorscheme and palette overrides.
-
--- UI / Colorscheme
 vim.pack.add({
   { version = "cdc07ac", src = "https://github.com/folke/tokyonight.nvim" },
 })

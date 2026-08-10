@@ -1,4 +1,3 @@
--- lsp
 vim.pack.add({
   { version = "31026a1", src = "https://github.com/neovim/nvim-lspconfig" },
   { version = "cb8445f", src = "https://github.com/williamboman/mason.nvim" },
@@ -79,7 +78,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "gr", "<cmd>Glance references<cr>", opts)
     vim.keymap.set("n", "gi", "<cmd>Glance implementations<cr>", opts)
 
-    -- highlight references under cursor
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client and client:supports_method("textDocument/documentHighlight") then
       local group = vim.api.nvim_create_augroup("lsp-highlight-" .. args.buf, { clear = true })

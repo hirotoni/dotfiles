@@ -1,4 +1,3 @@
--- telescope
 vim.pack.add({
   { version = "5063384", src = "https://github.com/nvim-telescope/telescope.nvim" },
   -- plenary is a shared dependency declared in plugins/neotree.lua (loads first);

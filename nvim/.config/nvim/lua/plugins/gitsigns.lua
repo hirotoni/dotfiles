@@ -1,4 +1,3 @@
--- git change markers / hunk navigation
 vim.pack.add({
   { version = "2038c66", src = "https://github.com/lewis6991/gitsigns.nvim" },
 })

@@ -1,4 +1,3 @@
--- Neo-tree
 vim.pack.add({
   { version = "19d20a9", src = "https://github.com/nvim-neo-tree/neo-tree.nvim" },
   -- nvim-web-devicons / plenary: shared dependencies (also used by telescope);

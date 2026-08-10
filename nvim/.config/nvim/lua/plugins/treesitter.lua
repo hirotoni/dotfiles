@@ -1,4 +1,3 @@
--- treesitter
 vim.pack.add({
   { version = "4916d65", src = "https://github.com/nvim-treesitter/nvim-treesitter" },
 })

@@ -8,13 +8,10 @@ local function pack_names(arg_lead)
   return names
 end
 
--- custom commands for package management
--- PackUpdate updates installed packages
 vim.api.nvim_create_user_command("PackUpdate", function(opts)
   vim.pack.update(#opts.fargs > 0 and opts.fargs or nil)
 end, { nargs = "*", complete = pack_names })
 
--- PackList lists installed packages and shows active/inactive.
 vim.api.nvim_create_user_command("PackList", function()
   local plugins = vim.pack.get()
   table.sort(plugins, function(a, b)
@@ -36,7 +33,6 @@ vim.api.nvim_create_user_command("PackList", function()
   print(table.concat(lines, "\n"))
 end, {})
 
--- PackDel Deletes installed packages
 vim.api.nvim_create_user_command("PackDel", function(opts)
   vim.pack.del(opts.fargs)
 end, { nargs = "+", complete = pack_names })

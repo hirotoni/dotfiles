@@ -1,4 +1,3 @@
--- toggleterm
 vim.pack.add({
   { version = "9a88eae", src = "https://github.com/akinsho/toggleterm.nvim" },
 })
