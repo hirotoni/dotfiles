@@ -17,6 +17,7 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 8
 vim.opt.mousescroll = "ver:1,hor:1"
 
+-- folds come from the treesitter foldexpr set per-buffer in plugins/treesitter.lua
 vim.opt.foldlevelstart = 99
 
 -- the neo-tree QuitPre workaround (plugins/neotree.lua) depends on this being
