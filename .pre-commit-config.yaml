@@ -3,3 +3,34 @@ repos:
     rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # v8.30.1
     hooks:
       - id: gitleaks
+
+  - repo: local
+    hooks:
+      # --clean は必須。~/.config/nvim は stow でこのリポジトリを指す symlink な
+      # ので、付けないと検査器が検査対象の設定そのものを読み込む。
+      - id: lua-syntax
+        name: lua syntax (loadfile)
+        language: system
+        types: [lua]
+        entry: >-
+          nvim --clean -n --headless -c 'lua local bad = 0 for _, f in
+          ipairs(vim.fn.argv()) do local _, err = loadfile(f) if err then
+          print(err) bad = bad + 1 end end os.exit(bad > 0 and 1 or 0)'
+
+      # zsh -n / bash -n は先頭の 1 ファイルしか検査せず、残りの引数はスクリプト
+      # への位置引数として黙って捨てる。pre-commit は既定で複数ファイルをまとめて
+      # 渡すため、ループで 1 ファイルずつ渡さないと 2 件目以降が無検査になる。
+      - id: zsh-syntax
+        name: zsh syntax (zsh -n)
+        language: system
+        types: [zsh]
+        entry: 'bash -c ''rc=0; for f in "$@"; do zsh -n "$f" || rc=1; done; exit $rc'' --'
+
+      # pre-commit のファイル判定は .zsh にも shell タグを付けるので、zsh を
+      # 除かないと bash -n が zsh 固有の構文で落ちる。
+      - id: bash-syntax
+        name: bash syntax (bash -n)
+        language: system
+        types: [shell]
+        exclude_types: [zsh]
+        entry: 'bash -c ''rc=0; for f in "$@"; do bash -n "$f" || rc=1; done; exit $rc'' --'
