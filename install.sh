@@ -60,17 +60,43 @@ case "$TARGET" in
 esac
 
 for target in "${backup_targets[@]}"; do
-  if [[ -e "$HOME/$target" && ! -L "$HOME/$target" ]]; then
-    mkdir -p "$backup_dir"
-    mv "$HOME/$target" "$backup_dir/"
-    backed_up=1
-    echo "Backed up: $HOME/$target -> $backup_dir/$(basename "$target")"
+  home_path="$HOME/$target"
+
+  # 素通りさせてよいのは既にこのリポジトリの実体を指すリンクだけ。-L は「リンクな
+  # ら stow のもの」と決めつけてリンク切れや他所を指すリンクを見逃し、-e はリンク
+  # 先を辿るのでリンク切れをそもそも検出できない。-ef なら実体で比べられる。
+  if [[ ! -e "$home_path" && ! -L "$home_path" ]]; then
+    continue
   fi
+  if [[ "$home_path" -ef "$DOTFILES_DIR/$TARGET/$target" ]]; then
+    continue
+  fi
+
+  if ! mkdir -p "$backup_dir" || ! mv "$home_path" "$backup_dir/"; then
+    cat >&2 <<EOS
+Error: could not move $home_path out of the way.
+Move or remove it yourself, then re-run this script:
+  mv "$home_path" "$home_path.bak"
+EOS
+    exit 1
+  fi
+  backed_up=1
+  echo "Backed up: $home_path -> $backup_dir/$(basename "$target")"
 done
 
 # stow のパッケージ名として $TARGET をそのまま渡せるのは、リポジトリ直下の
 # パッケージディレクトリ名が受け付ける target 名と一致しているため。
-stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' "$TARGET"
+#
+# 退避を抜けてもなお stow が衝突する経路は残る。stow の所有判定はリンク先の実体で
+# はなく表記で行うため、同じリポジトリを別経路で指すリンクは所有外になる。stow は
+# 衝突を並べて中止するだけなので、次に何をすればよいかをここで補う。
+if ! stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' "$TARGET"; then
+  cat >&2 <<EOS
+Error: stow could not link $TARGET.
+Move or remove each path it listed above under $HOME, then re-run this script.
+EOS
+  exit 1
+fi
 
 if [[ "$TARGET" == "zsh" ]]; then
   echo "Done! Run 'exec zsh' to reload."
