@@ -1,5 +1,4 @@
 tap "daipeihust/tap"
-tap "homebrew/cask-fonts"
 tap "jesseduffield/lazygit"
 tap "olets/tap"
 brew "anyenv"
