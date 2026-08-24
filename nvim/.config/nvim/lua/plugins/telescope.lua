@@ -13,11 +13,11 @@ require("telescope").setup({
     find_files = {
       hidden = true,
       no_ignore = true,
-      find_command = { "fd", "--type", "f", "--hidden", "--no-ignore", "--exclude", ".git" },
+      find_command = { "fd", "--type", "f", "--hidden", "--no-ignore", "--exclude", ".git", "--exclude", "bin" },
     },
     live_grep = {
       additional_args = function()
-        return { "--hidden", "--no-ignore", "--glob", "!.git/*" }
+        return { "--hidden", "--no-ignore", "--glob", "!.git/*", "--glob", "!**/bin/**" }
       end,
     },
   },
