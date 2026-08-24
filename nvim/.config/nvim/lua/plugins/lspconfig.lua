@@ -15,6 +15,8 @@ require("mason-lspconfig").setup({
     "terraformls",
     "vue_ls",
     "vtsls",
+    "yamlls",
+    "jsonnet_ls",
   },
 })
 
@@ -69,6 +71,8 @@ vim.lsp.enable({
   "terraformls",
   "vtsls",
   "vue_ls",
+  "yamlls",
+  "jsonnet_ls",
 })
 
 vim.api.nvim_create_autocmd("LspAttach", {

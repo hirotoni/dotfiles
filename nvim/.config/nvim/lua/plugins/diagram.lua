@@ -24,12 +24,15 @@ require("image").setup({
 })
 
 require("diagram").setup({
+  events = {
+    render_buffer = {},
+  },
   integrations = {
     require("diagram.integrations.markdown"),
   },
   renderer_options = {
     plantuml = { charset = "utf-8" },
-    mermaid = { theme = "default", background = "transparent", scale = 1 },
+    mermaid = { theme = "dark", background = "transparent", scale = 1.5 },
     d2 = { theme_id = 1, dark_theme_id = 200, scale = 1 },
   },
 })
