@@ -30,6 +30,11 @@
       "src": "https://github.com/3rd/diagram.nvim",
       "version": "'89d8110'"
     },
+    "diffview.nvim": {
+      "rev": "4516612fe98ff56ae0415a259ff6361a89419b0a",
+      "src": "https://github.com/sindrets/diffview.nvim",
+      "version": "'4516612'"
+    },
     "flash.nvim": {
       "rev": "b6346946d10d07998efee029fb0f7a593806d0cd",
       "src": "https://github.com/folke/flash.nvim",
