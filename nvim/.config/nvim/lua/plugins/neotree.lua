@@ -110,7 +110,6 @@ require("neo-tree").setup({
   filesystem = {
     filtered_items = {
       visible = true, -- show hidden files
-      never_show = { "bin" },
     },
     follow_current_file = {
       enabled = true,
