@@ -1,3 +1,10 @@
+-- im-select is an optional external tool (Brewfile); without it jobstart()
+-- raises E475 on every InsertEnter/InsertLeave, so bail out before wiring
+-- the autocmds rather than letting each one fail.
+if vim.fn.executable("im-select") == 0 then
+  return
+end
+
 local im_normal = "com.apple.keylayout.ABC"
 local im_insert = im_normal
 
