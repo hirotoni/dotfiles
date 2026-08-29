@@ -40,12 +40,16 @@ brew bundle --file="$DOTFILES_DIR/Brewfile"
 
 backup_dir="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 backed_up=0
+config_placed=0
 
 # 退避は stow より前に走る。トラップが無いと、stow が衝突で失敗した時点で
 # set -e が即 exit し、利用者は設定がどこへ移されたか知らないまま取り残される。
+# config_placed=1 は stow 成功後にのみ立つ。stow より後の手順（pre-commit
+# install 等）が失敗しても、退避した元ファイルへの書き戻しは既に張られた
+# シンボリックリンクを壊すだけなので、案内を出さない。
 report_backup_dir() {
   local status=$?
-  if [[ $status -ne 0 && $backed_up -eq 1 ]]; then
+  if [[ $status -ne 0 && $backed_up -eq 1 && $config_placed -eq 0 ]]; then
     echo "Install failed. Your original files are in: $backup_dir" >&2
   fi
 }
@@ -97,11 +101,15 @@ Move or remove each path it listed above under $HOME, then re-run this script.
 EOS
   exit 1
 fi
+config_placed=1
+
+if ! (cd "$DOTFILES_DIR" && pre-commit install); then
+  echo "Warning: dotfiles config for $TARGET is in place, but pre-commit hook installation failed. Re-run '(cd \"$DOTFILES_DIR\" && pre-commit install)' yourself." >&2
+  exit 1
+fi
 
 if [[ "$TARGET" == "zsh" ]]; then
   echo "Done! Run 'exec zsh' to reload."
 else
   echo "Done!"
 fi
-
-(cd "$DOTFILES_DIR" && pre-commit install)
