@@ -34,3 +34,12 @@ repos:
         types: [shell]
         exclude_types: [zsh]
         entry: 'bash -c ''rc=0; for f in "$@"; do bash -n "$f" || rc=1; done; exit $rc'' --'
+
+      # Brewfile と nvim 側のどちらの変更が起点でも検査したいので、変更ファイルに
+      # 関わらずリポジトリ全体を検査する（pass_filenames: false）。
+      - id: nvim-brewfile-binaries
+        name: nvim binaries declared in Brewfile
+        language: system
+        files: ^(Brewfile|nvim/\.config/nvim/lua/.*\.lua)$
+        pass_filenames: false
+        entry: scripts/check-nvim-brewfile-binaries.sh
