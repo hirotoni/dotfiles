@@ -17,13 +17,17 @@ TARGET="$1"
 # ---------- Homebrew ----------
 # Homebrew を入れただけでは brew は PATH に無い（shellenv の追記は利用者任せで、
 # この dotfiles の管理外）。README の手順だけで動くようここで解決する。
-if ! command -v brew >/dev/null 2>&1; then
-  for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+# 探索先候補は zsh/.zshrc と共有するため homebrew-prefixes.txt に集約している。
+if ! command -v brew >/dev/null 2>&1 && [[ -r "$DOTFILES_DIR/homebrew-prefixes.txt" ]]; then
+  while read -r brew_bin; do
+    case "$brew_bin" in
+      ''|'#'*) continue ;;
+    esac
     if [[ -x "$brew_bin" ]]; then
       eval "$("$brew_bin" shellenv)"
       break
     fi
-  done
+  done < "$DOTFILES_DIR/homebrew-prefixes.txt"
 fi
 
 if ! command -v brew >/dev/null 2>&1; then
