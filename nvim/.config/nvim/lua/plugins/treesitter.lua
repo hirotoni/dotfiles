@@ -24,18 +24,36 @@ ts.install({
   "hcl",
 }, { summary = false }):wait(30000)
 
--- enable highlighting when a file is opened
+-- nvim-treesitter installs queries/<lang>/ alongside parser/<lang>.so, so a query
+-- being present also means its parser is. When that pairing breaks (interrupted
+-- install, deleted .so) vim.treesitter.query.get raises, hence the pcall.
+local function has_query(lang, name)
+  local ok, query = pcall(vim.treesitter.query.get, lang, name)
+  return ok and query ~= nil
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("treesitter-setup", { clear = true }),
   pattern = "*",
   callback = function(ev)
-    local lang = ev.match
-    -- enable highlighting
-    pcall(vim.treesitter.start, ev.buf, lang)
-    -- enable the following as needed
-    vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-    vim.wo[0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    vim.wo[0].foldmethod = "expr"
+    pcall(vim.treesitter.start, ev.buf, ev.match)
+
+    -- a filetype is not always its parser name (sh -> bash, typescriptreact -> tsx);
+    -- nvim-treesitter registers the mapping in its plugin/filetypes.lua
+    local lang = vim.treesitter.language.get_lang(ev.match)
+    if not lang then
+      return
+    end
+
+    -- only take over where treesitter can do the job: without these queries its
+    -- expressions yield nothing, while shadowing the filetype's own indent
+    if has_query(lang, "indents") then
+      vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+    if has_query(lang, "folds") then
+      vim.wo[0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      vim.wo[0].foldmethod = "expr"
+    end
   end,
 })
 
