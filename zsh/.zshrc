@@ -29,7 +29,13 @@ fi
 [[ -f ~/.zsh/local.zsh ]] && source ~/.zsh/local.zsh
 
 # ---------- completion ----------
-autoload -Uz compinit && compinit -u -C
+# zsh-completions（Homebrew）は brew shellenv が足す fpath
+# ($HOMEBREW_PREFIX/share/zsh/site-functions) に含まれない配布先を持つため、
+# ここで個別に足す。compinit より前に追加する必要がある。
+[[ -d "$HOMEBREW_PREFIX/share/zsh-completions" ]] && fpath=("$HOMEBREW_PREFIX/share/zsh-completions" $fpath)
+# -C は dump のフレッシュネス確認自体を省略するため、fpath に追加した
+# zsh-completions が ~/.zcompdump に反映されなくなる。-u のみ残す。
+autoload -Uz compinit && compinit -u
 
 # ---------- anyenv ----------
 # `anyenv install --init` を済ませていないマシンでは `anyenv init -` が
