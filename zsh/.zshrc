@@ -2,10 +2,26 @@
 # クリーンな macOS では brew が PATH に無い（Homebrew は shellenv の追記を
 # 利用者に任せており、その追記はこの dotfiles の管理外）。plugins と prompt は
 # $HOMEBREW_PREFIX 配下を source するので、ここで自力で解決しておく。
+# 探索先候補は install.sh と共有するため homebrew-prefixes.txt に集約している。
 if [[ -z "$HOMEBREW_PREFIX" ]]; then
   _brew=$(command -v brew 2>/dev/null)
-  [[ -x "$_brew" ]] || _brew=/opt/homebrew/bin/brew # Apple Silicon
-  [[ -x "$_brew" ]] || _brew=/usr/local/bin/brew    # Intel
+  if [[ ! -x "$_brew" ]]; then
+    # このファイル自身（stow で ~ にリンクされたシンボリックリンク）を :A で実体
+    # パスに解決し、そこから 2 階層上がって dotfiles リポジトリのルートを求める。
+    _dotfiles_dir=${${(%):-%N}:A:h:h}
+    if [[ -r "$_dotfiles_dir/homebrew-prefixes.txt" ]]; then
+      while read -r _brew_candidate; do
+        case "$_brew_candidate" in
+          ''|'#'*) continue ;;
+        esac
+        if [[ -x "$_brew_candidate" ]]; then
+          _brew=$_brew_candidate
+          break
+        fi
+      done < "$_dotfiles_dir/homebrew-prefixes.txt"
+    fi
+    unset _dotfiles_dir _brew_candidate
+  fi
   # shellenv は HOMEBREW_PREFIX に加えて PATH / MANPATH も設定する
   [[ -x "$_brew" ]] && eval "$("$_brew" shellenv)"
   unset _brew

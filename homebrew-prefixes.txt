@@ -1,0 +1,10 @@
+# Homebrew の brew 実行ファイルの探索先候補。PATH 上に brew が無いときに
+# この順で試す。install.sh と zsh/.zshrc の両方がこのファイルを読むため、
+# 探索先を変えたいときはここを 1 か所直せば両方に反映される。
+# 空行と '#' で始まる行は無視される。
+
+# Apple Silicon
+/opt/homebrew/bin/brew
+
+# Intel
+/usr/local/bin/brew
