@@ -24,9 +24,6 @@ require("image").setup({
 })
 
 require("diagram").setup({
-  events = {
-    render_buffer = {},
-  },
   integrations = {
     require("diagram.integrations.markdown"),
   },
