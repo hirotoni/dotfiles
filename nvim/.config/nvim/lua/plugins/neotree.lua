@@ -179,9 +179,6 @@ vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, {
 })
 
 local opt = { noremap = true, silent = true }
--- `last` targets the currently/last shown source, so toggling closes the open
--- window even when a non-filesystem source is visible (plain `toggle` defaults
--- to filesystem and would switch sources instead of closing).
 -- `toggle last` fails when source selector switches sources: _last.source diverges
 -- from the visible buffer, window_exists returns false, and close never fires.
 -- Instead, detect any open neo-tree window by filetype and close all of them.
