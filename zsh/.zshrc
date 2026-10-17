@@ -54,13 +54,25 @@ fi
 autoload -Uz compinit && compinit -u
 
 # ---------- anyenv ----------
+# `anyenv init -` が PATH や *ENV_ROOT を設定するのは $ANYENV_ROOT/envs 直下の
+# env ごとだけで、env に依らず出すのは素通しの anyenv 関数と補完ファイルの
+# source だけである。init は bash を何段も起動して遅いので、env が 1 つも無ければ
+# 呼ばずに補完ファイルだけを読む。補完ファイルの場所は init と同じく、anyenv の
+# 実体（libexec/anyenv）の 2 階層上から求める。env の判定は anyenv-envs と同じく、
+# リンク先も含めて envs 直下のディレクトリを数える。
 # `anyenv install --init` を済ませていないマシンでは `anyenv init -` が
 # 「definition root が無い」と警告して exit 1 する。起動のたびに警告を並べない
 # よう、成功したときだけ eval する。anyenv を使うマシンでは一度だけ
 # `anyenv install --init` を実行すること。
 if command -v anyenv >/dev/null 2>&1; then
-  if _anyenv_init=$(anyenv init - 2>/dev/null); then
-    eval "$_anyenv_init"
+  _anyenv_envs=(${ANYENV_ROOT:-$HOME/.anyenv}/envs/*(N-/))
+  if (( $#_anyenv_envs )); then
+    if _anyenv_init=$(anyenv init - 2>/dev/null); then
+      eval "$_anyenv_init"
+    fi
+  else
+    _anyenv_comp=${commands[anyenv]:A:h:h}/completions/anyenv.zsh
+    [[ -r $_anyenv_comp ]] && source "$_anyenv_comp"
   fi
-  unset _anyenv_init
+  unset _anyenv_envs _anyenv_init _anyenv_comp
 fi
