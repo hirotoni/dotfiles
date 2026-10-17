@@ -46,9 +46,9 @@
       "version": "'2038c66'"
     },
     "glance.nvim": {
-      "rev": "bf86d8b79dce808e65fdb6e9269d0b4ed6d2eefc",
+      "rev": "5a8eab1c1c48bfa19a33b556328a3c553138366e",
       "src": "https://github.com/DNLHC/glance.nvim",
-      "version": "'bf86d8b'"
+      "version": "'5a8eab1'"
     },
     "hover.nvim": {
       "rev": "e73c00da3a9c87a21d2a8ddf7ab4a39824bd5d56",
