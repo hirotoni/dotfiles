@@ -4,20 +4,27 @@ vim.pack.add({
   { version = "0c2823e", src = "https://github.com/williamboman/mason-lspconfig.nvim" },
 })
 
+local servers = {
+  "lua_ls",
+  "gopls",
+  "marksman",
+  "bashls",
+  "jsonls",
+  "terraformls",
+  "vue_ls",
+  "vtsls",
+  "yamlls",
+  "jsonnet_ls",
+}
+
 require("mason").setup()
 require("mason-lspconfig").setup({
-  ensure_installed = {
-    "lua_ls",
-    "gopls",
-    "marksman",
-    "bashls",
-    "jsonls",
-    "terraformls",
-    "vue_ls",
-    "vtsls",
-    "yamlls",
-    "jsonnet_ls",
-  },
+  ensure_installed = servers,
+  -- mason-lspconfig v2 defaults automatic_enable to true, which vim.lsp.enable()s every
+  -- mason-installed server. Passing `servers` limits that to the declared ones but
+  -- keeps its re-enable on install success, which is what attaches buffers opened
+  -- before a first-run install finishes.
+  automatic_enable = servers,
 })
 
 vim.lsp.config("*", {
@@ -62,18 +69,7 @@ vim.lsp.config("terraformls", {
   filetypes = { "terraform", "terraform-vars", "tf" },
 })
 
-vim.lsp.enable({
-  "lua_ls",
-  "gopls",
-  "marksman",
-  "bashls",
-  "jsonls",
-  "terraformls",
-  "vtsls",
-  "vue_ls",
-  "yamlls",
-  "jsonnet_ls",
-})
+vim.lsp.enable(servers)
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
