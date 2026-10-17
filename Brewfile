@@ -27,8 +27,10 @@ brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-git-prompt"
 brew "zsh-syntax-highlighting"
-brew "daipeihust/tap/im-select"
-brew "olets/tap/zsh-abbr"
+# Homebrew 6 は非公式 tap の formula を trust するまで読み込まず、brew bundle が失敗する。
+# tap 単位で trust すると同じ tap の他の formula まで読み込めるので、formula 単位にする。
+brew "daipeihust/tap/im-select", trusted: true
+brew "olets/tap/zsh-abbr", trusted: true
 cask "font-hack-nerd-font"
 cask "cmux"
 cask "hammerspoon"
