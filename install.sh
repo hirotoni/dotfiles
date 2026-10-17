@@ -110,6 +110,13 @@ EOS
   echo "Backed up: $home_path -> $backup_dir/$(basename "$target")"
 done
 
+# stow はリンク先にディレクトリが無いとディレクトリごと 1 本のリンクに畳む。
+# ~/.config が無いまま stow すると ~/.config 自体がリポジトリを指し、管理外の
+# ツールが書く設定や資格情報まで作業ツリーに入る。先に実ディレクトリを作る。
+if [[ -d "$DOTFILES_DIR/$TARGET/.config" ]]; then
+  mkdir -p "$HOME/.config"
+fi
+
 # stow のパッケージ名として $TARGET をそのまま渡せるのは、リポジトリ直下の
 # パッケージディレクトリ名が受け付ける target 名と一致しているため。
 #
