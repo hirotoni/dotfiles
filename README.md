@@ -34,6 +34,14 @@ config is read by cmux, not by a separate Ghostty app. The `Brewfile` installs
 cmux and Hammerspoon but not their config, so if you skip this target they
 start with their defaults.
 
+## Updating
+
+After `git pull`, plugins already installed by Neovim stay at their old
+revision even if `nvim/.config/nvim/nvim-pack-lock.json` changed. Neovim warns
+at startup when they differ; run `:PackSync` in Neovim and `:w` the
+confirmation buffer to check out the revisions in the lockfile. `:PackDrift`
+lists the plugins that differ.
+
 ## Machine-specific config
 
 ```bash

@@ -130,6 +130,51 @@ XDG_DATA_HOME=/tmp/nvim-clean/data XDG_STATE_HOME=/tmp/nvim-clean/state \
 nvim --headless "+lua print('CLEAN_OK plugins=' .. #vim.pack.get())" +qa!
 ```
 
+## Plugin revisions on disk vs the lockfile
+
+`vim.pack.add()` never moves a plugin that is already on disk, and a clean
+install checks out the lockfile `rev`, not the `version` under `lua/`. So a
+version bump must commit the updated `rev` in `nvim-pack-lock.json` along with
+the `version`, and a machine that pulls it keeps running the old revision
+until it is synced. `:PackList` can't show this — its REV column is
+read from the lockfile, not from disk.
+
+`lua/core/packsync.lua` compares each plugin's checked-out commit with the
+lockfile `rev`:
+
+- On a real (non-headless-`+qa`) startup it warns once, listing each drifted
+  plugin as `<name>  disk=<sha>  lock=<sha>`.
+- `:PackDrift` prints `PACK_DRIFT none`, or `PACK_DRIFT <n>` followed by the
+  same lines. Headless `+qa` exits before `VimEnter`, so agents use this:
+
+  ```bash
+  XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless +PackDrift +qa! 2>&1 | grep -A50 PACK_DRIFT
+  ```
+
+- `:PackSync` runs `vim.pack.update(nil, { target = "lockfile" })` and opens
+  the confirmation buffer (`:w` to apply). `:PackSync!` applies without
+  confirming; `:PackSync <name>…` limits it to those plugins. `:PackUpdate`
+  is not a substitute — it moves plugins to the newest commit matching
+  `version`, not to the lockfile `rev`.
+
+A task that bumps a plugin's `version`/`rev` is verified in an isolated
+`XDG_DATA_HOME`, which always clones fresh, so it says nothing about the
+user's machine. Report `:PackSync` as the step the user must run, and never
+run `:PackSync`/`vim.pack.update` against the real
+`~/.local/share/nvim/site/pack`. To exercise the sync, copy both the pack dir
+and this config into temp dirs — `vim.pack.update` writes the lockfile under
+`XDG_CONFIG_HOME`, so pointing that at the repo would rewrite the tracked
+`nvim-pack-lock.json`:
+
+```bash
+T=$(mktemp -d)
+mkdir -p "$T/config" "$T/data/nvim/site" "$T/state" "$T/cache"
+cp -R . "$T/config/nvim"
+cp -R ~/.local/share/nvim/site/pack "$T/data/nvim/site/pack"
+XDG_CONFIG_HOME=$T/config XDG_DATA_HOME=$T/data XDG_STATE_HOME=$T/state \
+XDG_CACHE_HOME=$T/cache nvim --headless '+PackSync!' +PackDrift +qa!
+```
+
 ## Gotchas
 
 - **Leader is the default `\`** — no `mapleader` is set anywhere. Telescope
