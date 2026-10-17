@@ -26,12 +26,22 @@ plugin declared under `lua/` and nvim-treesitter compiles parsers,
 automatically and headless — no prompt, takes a few minutes.
 
 The `plugins=<n>` that `driver.sh check` prints is `#vim.pack.get()`: every
-plugin installed on disk, not only the ones declared under `lua/`. A plugin
-whose declaration was removed stays on disk and in `nvim-pack-lock.json`, so
-on a long-lived machine `<n>` can exceed the declared count. That gap is
-expected — don't "fix" the config or this file to make the numbers match.
-Such leftovers show up as inactive entries (so would a declared plugin that
-the config skips at startup); list them with:
+plugin installed on disk, not only the ones declared under `lua/`. Expect it
+to equal the declared count on every machine; a larger `<n>` is a leftover
+to remove, not an expected gap. The two ways `<n>` drifts:
+
+- **Any machine, incl. a fresh one:** an entry left in `nvim-pack-lock.json`
+  after its declaration was removed. `vim.pack` installs every lockfile entry
+  missing on disk at startup, so the leftover is cloned again on first launch.
+- **Long-lived machine:** a plugin directory left on disk. `vim.pack` writes
+  any on-disk plugin missing from the lockfile back into it at startup, so
+  deleting only the lockfile entry gets undone and dirties the repo's lockfile.
+
+So removing a plugin takes both steps: delete its `vim.pack.add` declaration,
+then run `:lua vim.pack.del({ '<name>' })` on each machine — that removes the
+directory and the lockfile entry together. Leftovers show up as inactive
+entries (so would a declared plugin that the config skips at startup); list
+them with:
 
 ```bash
 XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless \
