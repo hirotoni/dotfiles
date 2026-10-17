@@ -81,6 +81,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
     vim.keymap.set("n", "grr", "<cmd>Glance references<cr>", opts)
     vim.keymap.set("n", "gi", "<cmd>Glance implementations<cr>", opts)
+    vim.keymap.set("n", "gri", "<cmd>Glance implementations<cr>", opts)
 
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client and client:supports_method("textDocument/documentHighlight") then
