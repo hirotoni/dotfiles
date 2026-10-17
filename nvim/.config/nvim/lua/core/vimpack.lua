@@ -23,12 +23,8 @@ vim.api.nvim_create_user_command("PackList", function()
   end
   local lines = { string.format("%-" .. width .. "s  %-7s  %s", "NAME", "REV", "STATUS") }
   for _, p in ipairs(plugins) do
-    lines[#lines + 1] = string.format(
-      "%-" .. width .. "s  %-7s  %s",
-      p.spec.name,
-      (p.rev or ""):sub(1, 7),
-      p.active and "active" or "inactive"
-    )
+    lines[#lines + 1] =
+      string.format("%-" .. width .. "s  %-7s  %s", p.spec.name, (p.rev or ""):sub(1, 7), p.active and "active" or "inactive")
   end
   print(table.concat(lines, "\n"))
 end, {})

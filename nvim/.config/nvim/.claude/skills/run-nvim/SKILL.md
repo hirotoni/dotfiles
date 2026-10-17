@@ -74,7 +74,7 @@ A change to one module under `lua/` doesn't need the full TUI:
 # "SYNTAX FAIL: <path>" line per bad file, and exits non-zero on any failure
 .claude/skills/run-nvim/driver.sh syntax
 
-# formatting gate (uses .stylua.toml)
+# formatting gate (uses .stylua.toml); prints "Diff in <path>:" per file
 stylua --check .
 
 # evaluate anything inside the fully-loaded config
@@ -90,6 +90,14 @@ when `lua/` was restructured (zsh aborts the loop on `no matches found`, bash
 hands the unexpanded pattern to nvim). `syntax` discovers files with `find`
 and aborts with `SYNTAX ABORT` if it finds none, so the next restructure
 fails loudly instead of passing vacuously.
+
+The same formatting check runs as the `lua-format` pre-commit hook, but only
+on the staged lua files under this unit. A file whose formatting drifted in
+through a merge (a merge commit that git creates on its own skips the hook)
+is therefore reported by `stylua --check .` here, or by
+`pre-commit run --all-files`. If it names a file you did not touch, the
+drift predates your change: fix it with `stylua <path>` in a commit of its
+own rather than folding the reformat into an unrelated commit.
 
 ## Run (human path)
 
