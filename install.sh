@@ -77,6 +77,89 @@ report_backup_dir() {
 }
 trap report_backup_dir EXIT
 
+# acd710b より前の install.sh は ~/.config を作らずに stow していたため、~/.config
+# ごとリポジトリの <pkg>/.config を指すリンクに畳まれたマシンが残っている。その状態
+# では下の mkdir -p も退避も stow も素通りし、畳みが解けない。退避より前に解くのは、
+# 畳み中に作業ツリーへ書かれた管理外の ~/.config/<x> を退避ループが「~/.config に
+# ある実体」と見なして退避先へ動かさないようにするため。
+for folded_config in "$DOTFILES_DIR"/*/.config; do
+  if [[ ! -L "$HOME/.config" || ! "$HOME/.config" -ef "$folded_config" ]]; then
+    continue
+  fi
+  folded_pkg="$(basename "$(dirname "$folded_config")")"
+
+  # stow は git の追跡状態を見ずにパッケージ内のものをすべてリンクする。管理外の
+  # 項目を作業ツリーに残すと、畳みを解いても ~/.config/<x> がリポジトリを指し続ける。
+  # 読めないディレクトリの glob は黙って空になるので、列挙の前に確かめる。
+  if [[ ! -r "$folded_config" || ! -x "$folded_config" ]]; then
+    echo "Error: $HOME/.config is a link to $folded_config, which cannot be listed. Nothing was changed." >&2
+    exit 1
+  fi
+  shopt -s nullglob dotglob
+  entries=("$folded_config"/*)
+  shopt -u nullglob dotglob
+  unmanaged=()
+  # bash 3.2 の set -u は空配列の "${a[@]}" を未定義変数として扱う。
+  for entry in ${entries[@]+"${entries[@]}"}; do
+    name="$(basename "$entry")"
+    if ! tracked="$(git -C "$DOTFILES_DIR" ls-files -- ":(literal)$folded_pkg/.config/$name")"; then
+      cat >&2 <<EOS
+Error: $HOME/.config is a link into this repository ($folded_config),
+but git could not tell which files under it are tracked. Nothing was changed.
+EOS
+      exit 1
+    fi
+    if [[ -z "$tracked" ]]; then
+      unmanaged+=("$name")
+    fi
+  done
+
+  if ! rm "$HOME/.config"; then
+    echo "Error: could not remove the link $HOME/.config -> $folded_config. Nothing was changed." >&2
+    exit 1
+  fi
+  if ! mkdir "$HOME/.config"; then
+    cat >&2 <<EOS
+Error: removed the link $HOME/.config but could not create a directory there.
+Restore the link with:
+  ln -s "$folded_config" "$HOME/.config"
+EOS
+    exit 1
+  fi
+  echo "Unfolded: $HOME/.config was a link to $folded_config; it is now a directory."
+
+  failed_moves=()
+  for name in ${unmanaged[@]+"${unmanaged[@]}"}; do
+    if mv "$folded_config/$name" "$HOME/.config/$name"; then
+      echo "Moved unmanaged file out of the repository: $folded_config/$name -> $HOME/.config/$name"
+    else
+      failed_moves+=("$name")
+    fi
+  done
+  if [[ ${#failed_moves[@]} -gt 0 ]]; then
+    echo "Error: $HOME/.config was unfolded, but these files written by other tools could not be moved out of the repository. Move them yourself:" >&2
+    for name in "${failed_moves[@]}"; do
+      echo "  mv \"$folded_config/$name\" \"$HOME/.config/$name\"" >&2
+    done
+    if [[ "$folded_pkg" != "$TARGET" ]]; then
+      echo "Then run '$0 $folded_pkg' and '$0 $TARGET'." >&2
+    else
+      echo "Then re-run this script." >&2
+    fi
+    exit 1
+  fi
+
+  # リンクを外すと、畳まれていた側のパッケージの ~/.config/<x> も消える。
+  if [[ "$folded_pkg" != "$TARGET" ]] && ! stow -d "$DOTFILES_DIR" -t "$HOME" --ignore='.DS_Store' "$folded_pkg"; then
+    cat >&2 <<EOS
+Error: $HOME/.config was unfolded, but stow could not re-link $folded_pkg.
+Move or remove each path it listed above under $HOME, then run '$0 $folded_pkg' and '$0 $TARGET'.
+EOS
+    exit 1
+  fi
+  break
+done
+
 # 退避対象は、パッケージが $HOME に持ち込む最上位のパスを列挙する。葉のファイル
 # 単位にすると、パッケージにファイルが増えたときに列挙漏れが再発する。
 case "$TARGET" in
