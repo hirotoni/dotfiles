@@ -24,8 +24,16 @@ require("conform").setup({
       prepend_args = { "--config", vim.fn.stdpath("config") .. "/.autocorrectrc" },
     },
   },
-  format_on_save = {
-    timeout_ms = 3000,
-    lsp_format = "fallback",
-  },
+  -- bashls (plugins/lspconfig.lua) also attaches to zsh and formats through shfmt,
+  -- so the lsp fallback would run shfmt on zsh files, which has broken zsh-only
+  -- syntax such as $+functions in this repo before
+  format_on_save = function(bufnr)
+    if vim.bo[bufnr].filetype == "zsh" then
+      return
+    end
+    return {
+      timeout_ms = 3000,
+      lsp_format = "fallback",
+    }
+  end,
 })
