@@ -8,5 +8,6 @@
 # export HTTP_PROXY=...
 
 # 個人用 abbr / 関数
-# abbr -S --quieter cdgh='cd ~/Documents/GitHub'
-# abbr -S --quieter mmt="memov2 todos new"
+# session_abbr は plugins/zsh-abbr.zsh が定義する。abbr -S --quieter と同じ結果で、起動が速い
+# session_abbr cdgh='cd ~/Documents/GitHub'
+# session_abbr mmt="memov2 todos new"
