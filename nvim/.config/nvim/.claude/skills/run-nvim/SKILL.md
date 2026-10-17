@@ -19,17 +19,24 @@ is stowed to `~/.config/nvim`.
 
 ## Prerequisites
 
-Verified present via Homebrew: `nvim` (0.12.2), `tmux`, `fd` and `rg`
+Verified present via Homebrew: `nvim`, `tmux`, `fd` and `rg`
 (telescope pickers hard-require them), `lazygit`, `stylua`. First launch
-on a clean machine needs network + a C compiler: `vim.pack` git-clones the
-26 plugins declared under `lua/` and nvim-treesitter compiles parsers,
+on a clean machine needs network + a C compiler: `vim.pack` git-clones every
+plugin declared under `lua/` and nvim-treesitter compiles parsers,
 automatically and headless — no prompt, takes a few minutes.
 
-On a machine that has been running this config for a while `driver.sh check`
-reports `plugins=27`, not 26: `vim.pack.get()` also counts `trouble.nvim`,
-which is still on disk and in `nvim-pack-lock.json` but is no longer declared
-anywhere under `lua/`. The 26/27 gap is expected — don't "fix" one number to
-match the other.
+The `plugins=<n>` that `driver.sh check` prints is `#vim.pack.get()`: every
+plugin installed on disk, not only the ones declared under `lua/`. A plugin
+whose declaration was removed stays on disk and in `nvim-pack-lock.json`, so
+on a long-lived machine `<n>` can exceed the declared count. That gap is
+expected — don't "fix" the config or this file to make the numbers match.
+Such leftovers show up as inactive entries (so would a declared plugin that
+the config skips at startup); list them with:
+
+```bash
+XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless \
+  "+lua for _, p in ipairs(vim.pack.get()) do if not p.active then print('INACTIVE ' .. p.spec.name) end end" +qa!
+```
 
 ## Run (agent path) — the driver
 
@@ -46,7 +53,7 @@ Individual commands for driving nvim by hand:
 
 ```bash
 D=.claude/skills/run-nvim/driver.sh
-$D check              # headless: prints CONFIG_OK colorscheme=… plugins=27
+$D check              # headless: prints CONFIG_OK colorscheme=<name> plugins=<n>
 $D syntax             # headless: loadfile() every .lua in this unit
 $D start init.lua     # nvim in a detached 120x35 tmux session 'nvim-driver'
 $D keys C-n           # send tmux key names (C-n, Escape, Enter, …)
