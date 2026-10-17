@@ -95,10 +95,9 @@ The same formatting check runs as the `lua-format` pre-commit hook, but only
 on the staged lua files under this unit. A file whose formatting drifted in
 through a merge (a merge commit that git creates on its own skips the hook)
 is therefore reported by `stylua --check .` here, or by
-`pre-commit run --all-files`. If it names
-a file you did not touch, the drift predates your change: fix it with
-`stylua <path>` in a commit of its own rather than folding the reformat into
-an unrelated commit.
+`pre-commit run --all-files`. If it names a file you did not touch, the
+drift predates your change: fix it with `stylua <path>` in a commit of its
+own rather than folding the reformat into an unrelated commit.
 
 ## Run (human path)
 

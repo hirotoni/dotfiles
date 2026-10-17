@@ -5,9 +5,10 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 unit_dir="$repo_root/nvim/.config/nvim"
 
 # --config-path is explicit so the result does not depend on where a given
-# stylua version looks for its config; `stylua --help` documents the default
-# as the current directory, which under pre-commit is the repo root, where
-# there is no .stylua.toml and the defaults (tabs, 120 columns) would apply.
+# stylua version looks for its config. `stylua --help` documents the default
+# as the current directory (the repo root under pre-commit, which has no
+# .stylua.toml); 2.6.0 actually searches upward from each file, but a version
+# that follows the help text would apply the defaults (tabs, 120 columns).
 stylua --check --config-path "$unit_dir/.stylua.toml" "$@"
 rc=$?
 if [ "$rc" -eq 1 ]; then
