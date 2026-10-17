@@ -19,8 +19,11 @@ is stowed to `~/.config/nvim`.
 
 ## Prerequisites
 
-Verified present via Homebrew: `nvim`, `tmux`, `fd` and `rg`
-(telescope pickers hard-require them), `lazygit`, `stylua`. First launch
+Declared in the repo's `Brewfile` (installed by `install.sh` / `brew bundle`):
+`nvim` (`neovim`), `tmux`, `fd` and `rg` (`ripgrep`; telescope pickers
+hard-require them), `lazygit`, `stylua`. `check` and `syntax` need only
+`nvim`; every tmux-backed command (and `smoke` before its interactive flow)
+exits with an install hint if `tmux` is missing. First launch
 on a clean machine needs network + a C compiler: `vim.pack` git-clones every
 plugin declared under `lua/` and nvim-treesitter compiles parsers,
 automatically and headless — no prompt, takes a few minutes.
