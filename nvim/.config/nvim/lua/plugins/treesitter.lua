@@ -4,7 +4,7 @@ vim.pack.add({
 
 -- install parsers (on first launch or update)
 local ts = require("nvim-treesitter")
-ts.install({
+local install = ts.install({
   "lua",
   "go",
   "gomod",
@@ -22,7 +22,30 @@ ts.install({
   "markdown",
   "terraform",
   "hcl",
-}, { summary = false }):wait(30000)
+}, { summary = false })
+
+-- Task:wait raises on timeout, which would abort init.lua before the remaining
+-- plugins and the colorscheme load. pwait only stops waiting: the install task
+-- keeps running on the event loop and can still be awaited.
+local ok, err = install:pwait(30000)
+if not ok and err == "timeout" then
+  vim.notify(
+    "nvim-treesitter: parser install is still running in the background; "
+      .. "buffers opened before it finishes need :edit to get highlighting",
+    vim.log.levels.WARN
+  )
+  install:await(function(install_err, all_installed)
+    vim.schedule(function()
+      if install_err or not all_installed then
+        vim.notify("nvim-treesitter: parser install finished with errors; see :TSLog", vim.log.levels.ERROR)
+      else
+        vim.notify("nvim-treesitter: parser install finished", vim.log.levels.INFO)
+      end
+    end)
+  end)
+elseif not ok then
+  vim.notify("nvim-treesitter: parser install failed: " .. tostring(err), vim.log.levels.ERROR)
+end
 
 -- nvim-treesitter installs queries/<lang>/ alongside parser/<lang>.so, so a query
 -- being present also means its parser is. When that pairing breaks (interrupted
