@@ -19,6 +19,13 @@ export XDG_CONFIG_HOME=$(dirname "$UNIT") # so `nvim` finds $XDG_CONFIG_HOME/nvi
 SNAPDIR=${SNAPDIR:-${TMPDIR:-/tmp}/nvim-driver-snaps}
 mkdir -p "$SNAPDIR"
 
+require_tmux() {
+  command -v tmux >/dev/null 2>&1 && return 0
+  echo "driver.sh: tmux not found on PATH" >&2
+  echo "driver.sh: install it with 'brew bundle' at the dotfiles repo root (Brewfile declares tmux), or 'brew install tmux'." >&2
+  exit 1
+}
+
 start() {
   tmux kill-session -t "$SESSION" 2>/dev/null || true
   tmux new-session -d -s "$SESSION" -x 120 -y 35 \
@@ -113,6 +120,7 @@ smoke() {
   }
 
   echo "== interactive flow =="
+  require_tmux
   start init.lua
   assert_pane 'init.lua' "winbar shows filename"
   assert_pane 'require("plugins")' "file contents rendered"
@@ -143,6 +151,9 @@ smoke() {
 
 cmd=${1:-smoke}
 shift || true
+case "$cmd" in
+  start | keys | type | snap | text | stop) require_tmux ;;
+esac
 case "$cmd" in
   check) check ;;
   syntax) syntax ;;
