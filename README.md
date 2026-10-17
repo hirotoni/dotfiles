@@ -22,10 +22,17 @@ then at `/opt/homebrew/bin/brew` (Apple Silicon) and `/usr/local/bin/brew`
 git clone git@github.com:hirotoni/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
-# run with target
-./install.sh zsh
-./install.sh nvim
+# run once per target
+./install.sh zsh    # ~/.zshrc, ~/.zshenv, ~/.zsh
+./install.sh nvim   # ~/.config/nvim
+./install.sh cmux   # ~/.config/cmux, ~/.config/ghostty, ~/.hammerspoon
 ```
+
+`install.sh` accepts one target per run: `zsh`, `nvim`, or `cmux`. The `cmux`
+target places the config for cmux, Ghostty, and Hammerspoon. The Ghostty
+config is read by cmux, not by a separate Ghostty app. The `Brewfile` installs
+cmux and Hammerspoon but not their config, so if you skip this target they
+start with their defaults.
 
 ## Machine-specific config
 
