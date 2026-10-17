@@ -142,10 +142,7 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.notify("cmux command not found", vim.log.levels.ERROR)
         return
       end
-      vim.fn.jobstart(
-        { "cmux", "markdown", "open", path, "--direction", "right", "--focus", "false" },
-        { detach = true }
-      )
+      vim.fn.jobstart({ "cmux", "markdown", "open", path, "--direction", "right", "--focus", "false" }, { detach = true })
       vim.notify("cmux markdown: " .. vim.fn.fnamemodify(path, ":t"))
     end, { buffer = true, desc = "Open in cmux markdown viewer" })
   end,
