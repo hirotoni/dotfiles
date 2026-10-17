@@ -98,11 +98,7 @@ XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless "+lua print(vim.g.colors_name)" 
 `syntax` and `check` need no tmux, and behave identically from zsh and bash
 because `driver.sh` runs under its own bash shebang. Keep the syntax check in
 `driver.sh` rather than pasting a `for f in init.lua lua/*.lua …` loop back
-into this file: that inline form is what silently stopped checking anything
-when `lua/` was restructured (zsh aborts the loop on `no matches found`, bash
-hands the unexpanded pattern to nvim). `syntax` discovers files with `find`
-and aborts with `SYNTAX ABORT` if it finds none, so the next restructure
-fails loudly instead of passing vacuously.
+into this file; the comment above `lua_files()` in `driver.sh` explains why.
 
 The same formatting check runs as the `lua-format` pre-commit hook, but only
 on the staged lua files under this unit. A file whose formatting drifted in
