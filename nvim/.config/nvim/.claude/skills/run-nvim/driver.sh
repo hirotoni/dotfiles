@@ -65,10 +65,10 @@ check() {
 }
 
 # Every .lua file in this unit, DISCOVERED rather than listed. A hard-coded
-# glob (`lua/*.lua lua/config/*.lua`) is how this check silently went to zero
-# once lua/ was restructured: zsh aborts the loop on `no matches found`, bash
-# passes the unexpanded pattern through. find + the empty guard in syntax()
-# below mean a future restructure fails loudly instead of checking nothing.
+# glob (`lua/*.lua lua/config/*.lua`) silently checks nothing once the files
+# move: zsh aborts the loop on `no matches found`, bash passes the unexpanded
+# pattern through. find + the empty guard in syntax() below make a broken
+# search fail loudly instead.
 # -H: invoked through the stow path, $UNIT is itself the ~/.config/nvim
 # symlink, and find would not descend into it without being told to.
 lua_files() { find -H "$UNIT" -name '*.lua' -type f | sort; }
