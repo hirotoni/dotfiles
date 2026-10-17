@@ -19,17 +19,13 @@ repos:
 
       # 構文検査（lua-syntax）とは分けてある。stylua --check は整形差分でも落ちる
       # ので、構文検査に使うと失敗の意味が混ざる（TASK-10）。
-      # --config-path を明示するのは、設定の探索先に頼らないため。stylua --help は
-      # 既定の探索先をカレントディレクトリ（pre-commit では repo ルート）と書いて
-      # いる。2.6.0 は実際にはファイルから上へ探すが、そうでない版だと既定値で
-      # 全ファイルが落ちる。
       # .stylua.toml は nvim ユニットにしか無いので、対象もそこに限る。
       - id: lua-format
         name: lua format (stylua --check)
         language: system
         types: [lua]
         files: ^nvim/\.config/nvim/
-        entry: 'bash -c ''stylua --check --config-path nvim/.config/nvim/.stylua.toml "$@"; rc=$?; if [ $rc -eq 1 ]; then echo "整形が .stylua.toml と合わないファイルがある（上の Diff in の行）。直すには: stylua --config-path nvim/.config/nvim/.stylua.toml <ファイル>。整形の修正は他の変更と別のコミットにする。"; fi; exit $rc'' --'
+        entry: scripts/check-nvim-lua-format.sh
 
       # zsh -n / bash -n は先頭の 1 ファイルしか検査せず、残りの引数はスクリプト
       # への位置引数として黙って捨てる。pre-commit は既定で複数ファイルをまとめて
