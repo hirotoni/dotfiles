@@ -21,13 +21,13 @@ TARGET="$1"
 if ! command -v brew >/dev/null 2>&1 && [[ -r "$DOTFILES_DIR/homebrew-prefixes.txt" ]]; then
   while read -r brew_bin; do
     case "$brew_bin" in
-      ''|'#'*) continue ;;
+      '' | '#'*) continue ;;
     esac
     if [[ -x "$brew_bin" ]]; then
       eval "$("$brew_bin" shellenv)"
       break
     fi
-  done < "$DOTFILES_DIR/homebrew-prefixes.txt"
+  done <"$DOTFILES_DIR/homebrew-prefixes.txt"
 fi
 
 if ! command -v brew >/dev/null 2>&1; then

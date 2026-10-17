@@ -1,0 +1,8 @@
+root = true
+
+# conform.nvim の shfmt 定義は .editorconfig が見つかると -i を渡さず、shfmt は
+# ここから書式を読む。無いとバッファの shiftwidth（init.lua の既定は 4）が使われる。
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+switch_case_indent = true
