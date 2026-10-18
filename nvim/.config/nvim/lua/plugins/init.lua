@@ -39,6 +39,7 @@ require("plugins.hover")
 require("plugins.gitsigns")
 require("plugins.githublink")
 require("plugins.flash")
+require("plugins.surround")
 
 -- Stubs stand in for the keymaps and commands that the module defines itself,
 -- so each lhs and command name here must also be defined by that module. The

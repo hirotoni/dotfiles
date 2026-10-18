@@ -90,6 +90,11 @@
       "src": "https://github.com/neovim/nvim-lspconfig",
       "version": "'31026a1'"
     },
+    "nvim-surround": {
+      "rev": "8b47db616ef658b8fc27e61db2896aa2f40134de",
+      "src": "https://github.com/kylechui/nvim-surround",
+      "version": "'8b47db6'"
+    },
     "nvim-treesitter": {
       "rev": "4916d6592ede8c07973490d9322f187e07dfefac",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
