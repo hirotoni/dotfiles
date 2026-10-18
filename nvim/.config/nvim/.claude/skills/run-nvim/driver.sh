@@ -25,13 +25,17 @@ set -euo pipefail
 SESSION=nvim-driver
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 UNIT=$(cd "$SCRIPT_DIR/../../.." && pwd)  # <repo>/nvim/.config/nvim
+# Agents run in parallel, each from its own worktree, so everything a start
+# leaves behind (tmux server, sandbox record, snapshots) is keyed on $UNIT.
+# A private tmux socket also keeps the user's default server untouched.
+DRIVER_ID=nvim-driver-$(printf '%s' "$UNIT" | cksum | cut -d' ' -f1)
 REAL_DATA=${XDG_DATA_HOME:-$HOME/.local/share}/nvim
 [ -d "$REAL_DATA" ] && REAL_DATA=$(cd "$REAL_DATA" && pwd)
 TMP_ROOT=${TMPDIR:-/tmp}
 TMP_ROOT=${TMP_ROOT%/}
 SANDBOX_PREFIX=$TMP_ROOT/nvim-driver-sandbox.
-SESSION_SANDBOX_FILE=$TMP_ROOT/$SESSION.sandbox
-SNAPDIR=${SNAPDIR:-$TMP_ROOT/nvim-driver-snaps}
+SESSION_SANDBOX_FILE=$TMP_ROOT/$DRIVER_ID.sandbox
+SNAPDIR=${SNAPDIR:-$TMP_ROOT/nvim-driver-snaps/$DRIVER_ID}
 mkdir -p "$SNAPDIR"
 
 require_tmux() {
@@ -40,6 +44,8 @@ require_tmux() {
   echo "driver.sh: install it with 'brew bundle' at the dotfiles repo root (Brewfile declares tmux), or 'brew install tmux'." >&2
   exit 1
 }
+
+tmux_() { tmux -L "$DRIVER_ID" "$@"; }
 
 # make_sandbox <full|empty>: `empty` skips the data copy, for runs that never
 # load the config. Called as $(make_sandbox …), where set -e does not reach,
@@ -139,40 +145,40 @@ drop_session_sandbox() {
 
 start() {
   local sb tmux_env=() v
-  tmux kill-session -t "$SESSION" 2>/dev/null || true
+  tmux_ kill-session -t "$SESSION" 2>/dev/null || true
   drop_session_sandbox
   sb=$(make_sandbox full) || exit 1
   echo "$sb" >"$SESSION_SANDBOX_FILE"
   # The pane gets the tmux server's environment, not this script's, so the
   # sandbox variables have to be handed to tmux explicitly.
   while IFS= read -r v; do tmux_env+=(-e "$v"); done < <(sandbox_vars "$sb")
-  tmux new-session -d -s "$SESSION" -x 120 -y 35 "${tmux_env[@]}" \
+  tmux_ new-session -d -s "$SESSION" -x 120 -y 35 "${tmux_env[@]}" \
     "cd '$UNIT' && nvim ${1:+'$1'}"
   sleep 2 # plugin + colorscheme load
   echo "started tmux session '$SESSION' (nvim in $UNIT, sandbox $sb)"
 }
 
 keys() {
-  tmux send-keys -t "$SESSION" "$@"
+  tmux_ send-keys -t "$SESSION" "$@"
   sleep 0.5
 }
 type_() {
-  tmux send-keys -t "$SESSION" -l "$1"
+  tmux_ send-keys -t "$SESSION" -l "$1"
   sleep 0.3
 }
 
 snap() {
   local f="$SNAPDIR/${1:-snap-$(date +%H%M%S)}.txt"
-  tmux capture-pane -pt "$SESSION" >"$f"
+  tmux_ capture-pane -pt "$SESSION" >"$f"
   echo "$f"
 }
 
-text() { tmux capture-pane -pt "$SESSION"; }
+text() { tmux_ capture-pane -pt "$SESSION"; }
 
 stop() {
-  tmux send-keys -t "$SESSION" Escape ':qa!' Enter 2>/dev/null || true
+  tmux_ send-keys -t "$SESSION" Escape ':qa!' Enter 2>/dev/null || true
   sleep 0.5
-  tmux kill-session -t "$SESSION" 2>/dev/null || true
+  tmux_ kill-session -t "$SESSION" 2>/dev/null || true
   drop_session_sandbox
   echo "stopped"
 }

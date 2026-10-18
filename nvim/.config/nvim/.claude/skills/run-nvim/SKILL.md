@@ -113,7 +113,16 @@ $D stop               # :qa! and kill the session
 $D nvim <args…>       # run nvim <args…> in a fresh sandbox, e.g. --headless "+lua …" +qa!
 ```
 
-Snapshots land in `$TMPDIR/nvim-driver-snaps/` (override with `SNAPDIR=`).
+The tmux session runs on a private socket (`tmux -L nvim-driver-<n>`), never
+the default server, and `<n>` is derived from this unit's absolute path. So
+drivers started from different worktrees at the same time each drive and read
+only their own nvim, provided each calls its own worktree's copy of the driver
+(not one reached through `~/.config/nvim`); two runs of the same copy still
+share one session. To attach by hand, from this unit's directory:
+`tmux -L "nvim-driver-$(printf %s "$PWD" | cksum | cut -d' ' -f1)" attach`.
+
+Snapshots land in `$TMPDIR/nvim-driver-snaps/nvim-driver-<n>/` (override with
+`SNAPDIR=`).
 
 ## Direct invocation (most PRs need only this)
 
