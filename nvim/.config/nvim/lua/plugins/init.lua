@@ -8,6 +8,21 @@
 -- Deferred modules run vim.pack.add after init.lua has been sourced, where its
 -- default is load=true: the package's plugin/ files are sourced right then
 -- instead of in the startup plugin pass.
+
+-- Registered here, before any vim.pack.add, rather than in plugins/telescope.lua:
+-- telescope loads on demand, so a hook there would miss a :PackUpdate run in a
+-- session that never opened it, and the first vim.pack.add below may already
+-- install lockfile entries missing on disk.
+vim.api.nvim_create_autocmd("PackChanged", {
+  callback = function(ev)
+    local fzf_native = require("utils.fzf_native")
+    local data = ev.data
+    if data.spec.name == fzf_native.name and (data.kind == "install" or data.kind == "update") then
+      fzf_native.build(data.path, true)
+    end
+  end,
+})
+
 require("plugins.neotree")
 require("plugins.conform")
 require("plugins.blink")

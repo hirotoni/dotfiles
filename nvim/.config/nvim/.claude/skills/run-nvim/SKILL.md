@@ -228,9 +228,11 @@ only the sandbox's copy of `nvim-pack-lock.json`:
   "speed it up" by pointing nvim at the real data.
 - **`:PackList` ends with a `Press ENTER` more-prompt** — send `Enter` to
   dismiss before the next command.
-- **telescope-fzf-native is cloned but never built/loaded** (no
-  `load_extension("fzf")` in the config), so the missing `build/` dir is not an
-  error.
+- **telescope-fzf-native is compiled with `make`** (needs a C compiler) by
+  the `PackChanged` hook in `lua/plugins/init.lua` on install/update, and by
+  `lua/plugins/telescope.lua` on first use if `build/libfzf.so` is missing.
+  The sandbox copies the real pack dir, so a build there lands only in the
+  copy; the real `build/` appears on the user's next telescope use.
 - **`luac` is not installed** (only `luajit`), so `driver.sh syntax` uses nvim
   itself as the parser: `nvim -es --headless "+lua loadfile(…)"` per file.
 

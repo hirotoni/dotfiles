@@ -23,6 +23,14 @@ require("telescope").setup({
   },
 })
 
+-- The PackChanged hook in plugins/init.lua only fires on install/update, so a
+-- copy installed before it existed is built here on first use.
+local fzf_native = require("utils.fzf_native")
+local fzf_pack = vim.pack.get({ fzf_native.name }, { info = false })[1]
+if fzf_pack and fzf_native.ensure(fzf_pack.path) then
+  require("telescope").load_extension("fzf")
+end
+
 local builtin = require("telescope.builtin")
 vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Telescope find files" })
 vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live grep" })
