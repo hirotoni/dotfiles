@@ -240,8 +240,6 @@ only the sandbox's copy of `nvim-pack-lock.json`:
   `lua/plugins/telescope.lua` on first use if `build/libfzf.so` is missing.
   The sandbox copies the real pack dir, so a build there lands only in the
   copy; the real `build/` appears on the user's next telescope use.
-- **`luac` is not installed** (only `luajit`), so `driver.sh syntax` uses nvim
-  itself as the parser: `nvim -es --headless "+lua loadfile(…)"` per file.
 
 ## Troubleshooting
 

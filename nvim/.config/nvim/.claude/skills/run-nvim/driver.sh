@@ -1,25 +1,13 @@
 #!/usr/bin/env bash
 # Driver for running/driving this Neovim config inside tmux.
-# Usage: driver.sh <command> [args]
-#   check              headless config-load smoke check (no tmux needed)
-#   syntax             loadfile() every .lua file in this unit (no tmux needed)
-#   start [file]       launch nvim in a detached tmux session (120x35)
-#   keys <keys...>     send tmux key names (e.g. C-n, Escape, Enter)
-#   type <text>        send literal text (e.g. ':PackList' — follow with keys Enter)
-#   snap [name]        capture the pane to $SNAPDIR/<name>.txt and print the path
-#   text               print the current pane contents to stdout
-#   stop               quit nvim and kill the tmux session
-#   nvim <args...>     run nvim with <args> in a throwaway sandbox (e.g. --headless +PackDrift +qa!)
-#   smoke              full start->interact->assert->stop flow
+# SKILL.md next to this script documents the commands and the sandbox layout;
+# keep its command list in step with the case below.
 #
-# Every nvim this script launches runs in a sandbox: a mktemp dir holding a copy
-# of this unit as XDG_CONFIG_HOME/nvim, a copy of the real
-# ${XDG_DATA_HOME:-~/.local/share}/nvim (plugins, parsers, mason LSP servers) as
-# XDG_DATA_HOME/nvim, and empty XDG_STATE_HOME / XDG_CACHE_HOME. vim.pack writes
-# nvim-pack-lock.json under XDG_CONFIG_HOME and installs/deletes under
-# XDG_DATA_HOME, and tools started from nvim (lazygit) keep their own config
-# under XDG_CONFIG_HOME, so neither the real data nor the repo can be pointed
-# at directly.
+# Every nvim this script launches runs on copies (populate_sandbox) rather than
+# on the repo and the real data: vim.pack writes nvim-pack-lock.json under
+# XDG_CONFIG_HOME and installs/deletes under XDG_DATA_HOME, and tools started
+# from nvim (lazygit) keep their own config under XDG_CONFIG_HOME, so neither
+# can be pointed at directly.
 set -euo pipefail
 
 SESSION=nvim-driver
