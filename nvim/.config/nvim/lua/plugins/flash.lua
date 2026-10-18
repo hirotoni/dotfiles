@@ -8,9 +8,6 @@ local flash = require("flash")
 flash.setup({
   labels = "asdfghjklqwertyuiopzxcvbnm",
   modes = {
-    search = {
-      enabled = true,
-    },
     char = {
       enabled = true,
     },
