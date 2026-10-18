@@ -3,7 +3,6 @@ vim.pack.add({
   { version = "8decd73", src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
 })
 
--- install parsers (on first launch or update)
 local ts = require("nvim-treesitter")
 local install = ts.install({
   "lua",
@@ -92,7 +91,6 @@ require("treesitter-context").setup({
   end,
 })
 
--- auto-update parsers on PackChanged
 vim.api.nvim_create_autocmd("PackChanged", {
   callback = function(ev)
     if ev.data.spec.name == "nvim-treesitter" then

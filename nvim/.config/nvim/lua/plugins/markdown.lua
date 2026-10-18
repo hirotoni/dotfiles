@@ -37,7 +37,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
     vim.keymap.set("n", "gx", function()
       local line = vim.api.nvim_get_current_line()
-      local col = vim.api.nvim_win_get_cursor(0)[2] + 1 -- 1-indexed
+      local col = vim.api.nvim_win_get_cursor(0)[2] + 1
 
       local pos = 1
       while true do

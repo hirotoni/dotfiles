@@ -154,7 +154,7 @@ start() {
   while IFS= read -r v; do tmux_env+=(-e "$v"); done < <(sandbox_vars "$sb")
   tmux_ new-session -d -s "$SESSION" -x 120 -y 35 "${tmux_env[@]}" \
     "cd '$UNIT' && nvim ${1:+'$1'}"
-  sleep 2 # plugin + colorscheme load
+  sleep 2
   echo "started tmux session '$SESSION' (nvim in $UNIT, sandbox $sb)"
 }
 
@@ -256,7 +256,7 @@ smoke() {
   sleep 1
   snap neotree >/dev/null
   assert_pane 'nvim-pack-lock.json' "neo-tree sidebar lists repo files"
-  keys C-n # toggle back off
+  keys C-n
 
   type_ '\ff'
   sleep 1.5

@@ -3,7 +3,6 @@ vim.pack.add({
 })
 
 require("claudecode").setup({
-  -- delegate terminal open/close to toggleterm
   provider = "none",
   diff_opts = {
     keep_terminal_focus = true,
