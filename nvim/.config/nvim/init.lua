@@ -25,7 +25,6 @@ vim.opt.foldlevelstart = 99
 vim.opt.confirm = true
 
 vim.opt.laststatus = 0
-vim.opt.winbar = "%f %m"
 
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
