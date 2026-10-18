@@ -3,11 +3,12 @@ vim.pack.add({
 })
 
 require("hover").setup({
-  init = function()
-    require("hover.providers.diagnostic")
-    require("hover.providers.dap")
-    require("hover.providers.lsp")
-  end,
+  providers = {
+    "hover.providers.diagnostic",
+    "hover.providers.lsp",
+    "hover.providers.man",
+    "hover.providers.dictionary",
+  },
   preview_opts = { border = "single" },
   preview_window = false,
   title = true,
