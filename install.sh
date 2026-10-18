@@ -43,7 +43,7 @@ fi
 brew bundle --file="$DOTFILES_DIR/Brewfile"
 
 # Homebrew の mermaid-cli は puppeteer が使う chrome-headless-shell を同梱しない
-# （mermaid-cli 11.17.0 時点。formula の test がこの欠落を前提にしている）。
+# （formula の test が mmdc の "Could not find chrome-headless-shell" を期待している）。
 # mmdc が実行時に探すビルドと一致させるため、npx ではなく formula 同梱の
 # puppeteer で取得する。取得済みなら何もせずに終わり、brew upgrade で同梱
 # puppeteer が上がった後に再実行すれば新しいビルドを取得する。chromium cask は
