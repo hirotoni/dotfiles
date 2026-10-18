@@ -78,13 +78,22 @@ to remove, not an expected gap. The two ways `<n>` drifts:
 
 So removing a plugin takes both steps: delete its `vim.pack.add` declaration,
 then run `:lua vim.pack.del({ '<name>' })` on each machine — that removes the
-directory and the lockfile entry together. Leftovers show up as inactive
-entries (so would a declared plugin that the config skips at startup); list
-them with:
+directory and the lockfile entry together. Don't look for leftovers by
+`p.active`: plugins that `lua/plugins/init.lua` loads after startup (on
+first use, when a matching file is read, or on VimEnter) are declared yet
+inactive in a headless run. A leftover is a plugin on disk with no
+`src = "…"` declaration under `lua/`; list them (no output means none) with:
 
 ```bash
-.claude/skills/run-nvim/driver.sh nvim --headless \
-  "+lua for _, p in ipairs(vim.pack.get()) do if not p.active then print('INACTIVE ' .. p.spec.name) end end" +qa!
+.claude/skills/run-nvim/driver.sh nvim --headless '+lua local declared = {}
+for _, f in ipairs(vim.fn.globpath(vim.fn.stdpath("config"), "lua/**/*.lua", false, true)) do
+  for src in table.concat(vim.fn.readfile(f), "\n"):gmatch([[src%s*=%s*"([^"]+)"]]) do
+    declared[(src:gsub("%.git$", ""):match("[^/]+$"))] = true
+  end
+end
+for _, p in ipairs(vim.pack.get()) do
+  if not declared[p.spec.name] then print("LEFTOVER " .. p.spec.name) end
+end' +qa!
 ```
 
 ## Run (agent path) — the driver
@@ -218,8 +227,6 @@ only the sandbox's copy of `nvim-pack-lock.json`:
   dirs start collapsed — don't assert on files inside `lua/` after `C-n`.
 - **`laststatus=0`**: there is no bottom statusline; the filename is in the
   winbar at the top of each window. Pane asserts should target the winbar.
-- **Headless runs always print** `image.nvim: cannot query terminal size` and a
-  `[ClaudeCode] … stopped` line on stderr. Benign; grep for your marker.
 - **The config is a copy taken at launch.** After editing `lua/` or the
   lockfile, a running `$D start` session still has the old copy (re-`require`,
   `:PackDrift`); restart it, or use `$D check` / `$D nvim`, to see the edit.
