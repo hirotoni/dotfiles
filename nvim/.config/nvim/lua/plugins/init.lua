@@ -25,6 +25,7 @@ vim.api.nvim_create_autocmd("PackChanged", {
 
 require("plugins.neotree")
 require("plugins.conform")
+require("plugins.lint")
 require("plugins.blink")
 require("plugins.lspconfig")
 require("plugins.glance")

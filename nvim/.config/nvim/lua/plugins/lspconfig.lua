@@ -15,6 +15,7 @@ local servers = {
   "vtsls",
   "yamlls",
   "jsonnet_ls",
+  "eslint",
 }
 
 require("mason").setup()
