@@ -57,6 +57,32 @@ vim.lsp.config("gopls", {
       gofumpt = true,
       diagnosticsDelay = "500ms",
       directoryFilters = { "-**/node_modules", "-**/testdata" },
+      hints = { parameterNames = true, assignVariableTypes = true },
+    },
+  },
+})
+
+local ts_inlay_hints = { parameterNames = { enabled = "all" } }
+
+-- vue_ls v3 forwards TypeScript requests to vtsls, and only vtsls running
+-- @vue/typescript-plugin on .vue buffers answers them (types, parameter-name
+-- hints). The plugin ships inside mason's vue-language-server package.
+vim.lsp.config("vtsls", {
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
+  settings = {
+    typescript = { inlayHints = ts_inlay_hints },
+    javascript = { inlayHints = ts_inlay_hints },
+    vtsls = {
+      tsserver = {
+        globalPlugins = {
+          {
+            name = "@vue/typescript-plugin",
+            location = vim.fn.stdpath("data") .. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
+            languages = { "vue" },
+            configNamespace = "typescript",
+          },
+        },
+      },
     },
   },
 })
@@ -71,6 +97,11 @@ vim.lsp.config("terraformls", {
 
 vim.lsp.enable(servers)
 
+-- Enabled globally rather than per buffer on LspAttach: a .vue buffer gets
+-- vtsls and vue_ls attached one after the other, and a per-attach enable would
+-- undo a toggle-off made in between.
+vim.lsp.inlay_hint.enable(true)
+
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local opts = { buffer = args.buf }
@@ -78,6 +109,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "grr", "<cmd>Glance references<cr>", opts)
     vim.keymap.set("n", "gi", "<cmd>Glance implementations<cr>", opts)
     vim.keymap.set("n", "gri", "<cmd>Glance implementations<cr>", opts)
+    vim.keymap.set("n", "<leader>uh", function()
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
+    end, { buffer = args.buf, desc = "LSP: toggle inlay hints (buffer)" })
 
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client and client:supports_method("textDocument/documentHighlight") then
