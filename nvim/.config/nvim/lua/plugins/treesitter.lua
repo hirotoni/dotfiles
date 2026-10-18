@@ -1,5 +1,6 @@
 vim.pack.add({
   { version = "4916d65", src = "https://github.com/nvim-treesitter/nvim-treesitter" },
+  { version = "8decd73", src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
 })
 
 -- install parsers (on first launch or update)
@@ -77,6 +78,17 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.wo[0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
       vim.wo[0].foldmethod = "expr"
     end
+  end,
+})
+
+require("treesitter-context").setup({
+  max_lines = 3,
+  -- keep the outermost scope (the func line) when the nesting exceeds max_lines
+  trim_scope = "inner",
+  multiline_threshold = 1,
+  -- the plugin ships a markdown context query that would pin section headings
+  on_attach = function(buf)
+    return vim.bo[buf].filetype ~= "markdown"
   end,
 })
 
