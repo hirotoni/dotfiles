@@ -70,6 +70,11 @@
       "src": "https://github.com/williamboman/mason.nvim",
       "version": "'cb8445f'"
     },
+    "mini.pairs": {
+      "rev": "03eb1f0062a2cee5314d1ac3939246e4bb21352e",
+      "src": "https://github.com/nvim-mini/mini.pairs",
+      "version": "'03eb1f0'"
+    },
     "neo-tree.nvim": {
       "rev": "19d20a99bf0061a5ecc4343d2f09fa713306c965",
       "src": "https://github.com/nvim-neo-tree/neo-tree.nvim",
