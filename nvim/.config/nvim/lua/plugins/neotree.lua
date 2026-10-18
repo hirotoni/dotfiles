@@ -27,20 +27,16 @@ local function safe_buffer_delete(state)
     return
   end
   local bufnr = node.extra.bufnr
-  -- The tree can outlive the buffer (already wiped elsewhere); skip stale nodes.
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return
   end
 
-  -- Swap every window showing this buffer to a replacement. Only resolve a
-  -- replacement when a window actually needs it, to avoid creating an orphan
-  -- empty buffer otherwise.
+  -- Only resolve a replacement when a window actually needs it, to avoid
+  -- creating an orphan empty buffer otherwise.
   local wins = vim.fn.win_findbuf(bufnr)
   local created = nil
   local alts = {}
   if #wins > 0 then
-    -- Reuse another listed buffer, or create a single empty buffer shared
-    -- across every affected window.
     local replacement = nil
     for _, b in ipairs(vim.api.nvim_list_bufs()) do
       if b ~= bufnr and vim.api.nvim_buf_is_valid(b) and vim.bo[b].buflisted then
@@ -71,9 +67,6 @@ local function safe_buffer_delete(state)
 
   local ok, err = pcall(vim.api.nvim_buf_delete, bufnr, { force = false, unload = false })
   if not ok then
-    -- Delete refused: restore the windows to the still-valid buffer (and their
-    -- original alternate buffer) and drop the throwaway empty buffer so it
-    -- doesn't leak, then surface the reason.
     for _, win in ipairs(wins) do
       if vim.api.nvim_win_is_valid(win) then
         vim.api.nvim_win_set_buf(win, bufnr)
