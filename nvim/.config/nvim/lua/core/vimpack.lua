@@ -1,19 +1,11 @@
-local function pack_names(arg_lead)
-  local names = {}
-  for _, p in ipairs(vim.pack.get()) do
-    if p.spec.name:find(arg_lead, 1, true) then
-      names[#names + 1] = p.spec.name
-    end
-  end
-  return names
-end
+local complete_names = require("utils.pack").complete_names
 
 vim.api.nvim_create_user_command("PackUpdate", function(opts)
   vim.pack.update(#opts.fargs > 0 and opts.fargs or nil)
-end, { nargs = "*", complete = pack_names })
+end, { nargs = "*", complete = complete_names })
 
 vim.api.nvim_create_user_command("PackList", function()
-  local plugins = vim.pack.get()
+  local plugins = vim.pack.get(nil, { info = false })
   table.sort(plugins, function(a, b)
     return a.spec.name < b.spec.name
   end)
@@ -31,4 +23,4 @@ end, {})
 
 vim.api.nvim_create_user_command("PackDel", function(opts)
   vim.pack.del(opts.fargs)
-end, { nargs = "+", complete = pack_names })
+end, { nargs = "+", complete = complete_names })

@@ -69,15 +69,7 @@ vim.api.nvim_create_user_command("PackSync", function(opts)
 end, {
   nargs = "*",
   bang = true,
-  complete = function(arg_lead)
-    local names = {}
-    for _, p in ipairs(vim.pack.get(nil, { info = false })) do
-      if p.spec.name:find(arg_lead, 1, true) then
-        names[#names + 1] = p.spec.name
-      end
-    end
-    return names
-  end,
+  complete = require("utils.pack").complete_names,
 })
 
 vim.api.nvim_create_autocmd("VimEnter", {
