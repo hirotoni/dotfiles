@@ -13,17 +13,53 @@ This unit is a Neovim (v0.12+) configuration using the built-in `vim.pack`
 plugin manager — there is no build step. "Running" it means launching
 `nvim` with this directory as its config. All paths below are relative to
 this unit (`nvim/.config/nvim` inside the dotfiles repo). The driver is
-`.claude/skills/run-nvim/driver.sh`; it wraps nvim in tmux and always sets
-`XDG_CONFIG_HOME` to the repo copy, so it works whether or not the config
-is stowed to `~/.config/nvim`.
+`.claude/skills/run-nvim/driver.sh`; it wraps nvim in tmux and runs every
+nvim it launches in a throwaway sandbox under `$TMPDIR`, so it works whether
+or not the config is stowed to `~/.config/nvim`.
+
+## Isolation — what the driver may and may not touch
+
+Each driver launch gets a fresh `mktemp` dir: a copy of this unit as
+`XDG_CONFIG_HOME/nvim`, a copy of the real `~/.local/share/nvim` (plugins,
+treesitter parsers, mason LSP servers) as `XDG_DATA_HOME/nvim`, and empty
+`XDG_STATE_HOME`/`XDG_CACHE_HOME`. Plugins and LSP load exactly as on the
+real machine, but every write — `nvim-pack-lock.json`, plugin installs and
+`vim.pack.del`, shada, swap, logs, lazygit's config — lands in the copy and is
+deleted afterwards (`start`'s sandbox lives until `stop` or the next `start`).
+The real `~/.local/{share,state}/nvim`, `~/.cache/nvim` and the repo's working
+tree stay unchanged. Tools started from inside nvim (git, lazygit, LSP
+servers) inherit the sandbox XDG dirs too, so they don't see the user's
+`~/.config` either (e.g. the global git ignore), and code that derives the
+dotfiles root from `stdpath("config")` (the mmdc hint in
+`lua/plugins/diagram.lua`) prints a wrong path under `$TMPDIR`.
+
+A change that must land in the repo's `nvim-pack-lock.json` is therefore
+copied out explicitly, at the end of the same run that made it. A new plugin
+is written to the sandbox lockfile by the `vim.pack.add` at startup; a
+`version`/`rev` bump needs a `vim.pack.update` of that plugin first:
+
+```bash
+.claude/skills/run-nvim/driver.sh nvim --headless \
+  "+lua vim.pack.update({ '<name>' }, { force = true })" \
+  "+lua assert(vim.uv.fs_copyfile(vim.fn.stdpath('config') .. '/nvim-pack-lock.json', '$PWD/nvim-pack-lock.json'))" +qa!
+```
+
+Drop the `vim.pack.update` line for a new plugin. Run it from this unit's
+directory, and review the result with `git diff` before committing.
+
+So run nvim only through the driver (`$D check`, `$D start`, `$D nvim …`).
+A bare `XDG_CONFIG_HOME=… nvim` points nvim at the repo and the real data
+and rewrites both. The only path that uses the real data is the human one
+below (plain `nvim`); a check that needs it — e.g. confirming a `:PackSync`
+on the user's machine — is a step to report to the user, not to run.
 
 ## Prerequisites
 
 Declared in the repo's `Brewfile` (installed by `install.sh` / `brew bundle`):
-`nvim` (`neovim`), `tmux`, `fd` and `rg` (`ripgrep`; telescope pickers
-hard-require them), `lazygit`, `stylua`. `check` and `syntax` need only
-`nvim`; every tmux-backed command (and `smoke` before its interactive flow)
-exits with an install hint if `tmux` is missing. First launch
+`nvim` (`neovim`), `tmux` (3.2+, for `new-session -e`), `fd` and `rg`
+(`ripgrep`; telescope pickers hard-require them), `lazygit`, `stylua`.
+`check` and `syntax` need only `nvim`; every tmux-backed command (and `smoke`
+before its interactive flow) exits with an install hint if `tmux` is missing. First launch
 on a clean machine needs network + a C compiler: `vim.pack` git-clones every
 plugin declared under `lua/` and nvim-treesitter compiles parsers,
 automatically and headless — no prompt, takes a few minutes.
@@ -47,7 +83,7 @@ entries (so would a declared plugin that the config skips at startup); list
 them with:
 
 ```bash
-XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless \
+.claude/skills/run-nvim/driver.sh nvim --headless \
   "+lua for _, p in ipairs(vim.pack.get()) do if not p.active then print('INACTIVE ' .. p.spec.name) end end" +qa!
 ```
 
@@ -74,6 +110,7 @@ $D type ':PackList'   # send literal text; follow with: $D keys Enter
 $D text               # dump current screen to stdout
 $D snap mystate       # save screen to a .txt "screenshot", prints the path
 $D stop               # :qa! and kill the session
+$D nvim <args…>       # run nvim <args…> in a fresh sandbox, e.g. --headless "+lua …" +qa!
 ```
 
 Snapshots land in `$TMPDIR/nvim-driver-snaps/` (override with `SNAPDIR=`).
@@ -91,8 +128,7 @@ A change to one module under `lua/` doesn't need the full TUI:
 stylua --check .
 
 # evaluate anything inside the fully-loaded config
-# (XDG_CONFIG_HOME must be the dir CONTAINING nvim/, i.e. .config — one level up)
-XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless "+lua print(vim.g.colors_name)" +qa!
+.claude/skills/run-nvim/driver.sh nvim --headless "+lua print(vim.g.colors_name)" +qa!
 ```
 
 `syntax` and `check` need no tmux, and behave identically from zsh and bash
@@ -111,19 +147,19 @@ own rather than folding the reformat into an unrelated commit.
 ## Run (human path)
 
 `nvim` in a real terminal — the config is stowed (`~/.config/nvim` →
-this directory), so plain `nvim` uses it. Useless from a non-interactive
-shell; use the driver.
+this directory), so plain `nvim` uses it — with the real data, so this is
+the path where installs, `:PackSync` and lockfile write-backs really happen.
+Useless from a non-interactive shell; use the driver.
 
 ## Test / isolated first-launch check
 
 There is no test suite. To prove the config bootstraps on a clean
-machine, point `XDG_DATA_HOME`/`XDG_STATE_HOME` at an empty dir — verified
-working; clones all plugins from scratch:
+machine, give the driver an empty `XDG_DATA_HOME` to copy from — the sandbox
+then starts with no plugins and clones all of them from scratch:
 
 ```bash
-XDG_CONFIG_HOME=$(cd .. && pwd) \
-XDG_DATA_HOME=/tmp/nvim-clean/data XDG_STATE_HOME=/tmp/nvim-clean/state \
-nvim --headless "+lua print('CLEAN_OK plugins=' .. #vim.pack.get())" +qa!
+XDG_DATA_HOME=/var/empty .claude/skills/run-nvim/driver.sh nvim --headless \
+  "+lua print('CLEAN_OK plugins=' .. #vim.pack.get())" +qa!
 ```
 
 ## Plugin revisions on disk vs the lockfile
@@ -144,7 +180,7 @@ lockfile `rev`:
   same lines. Headless `+qa` exits before `VimEnter`, so agents use this:
 
   ```bash
-  XDG_CONFIG_HOME=$(cd .. && pwd) nvim --headless +PackDrift +qa! 2>&1 | grep -A50 PACK_DRIFT
+  .claude/skills/run-nvim/driver.sh nvim --headless +PackDrift +qa! 2>&1 | grep -A50 PACK_DRIFT
   ```
 
 - `:PackSync` runs `vim.pack.update(nil, { target = "lockfile" })` and opens
@@ -153,22 +189,16 @@ lockfile `rev`:
   is not a substitute — it moves plugins to the newest commit matching
   `version`, not to the lockfile `rev`.
 
-A task that bumps a plugin's `version`/`rev` is verified in an isolated
-`XDG_DATA_HOME`, which always clones fresh, so it says nothing about the
+A task that bumps a plugin's `version`/`rev` is verified in the driver's
+sandbox, whose sync is thrown away with it, so it changes nothing on the
 user's machine. Report `:PackSync` as the step the user must run, and never
 run `:PackSync`/`vim.pack.update` against the real
-`~/.local/share/nvim/site/pack`. To exercise the sync, copy both the pack dir
-and this config into temp dirs — `vim.pack.update` writes the lockfile under
-`XDG_CONFIG_HOME`, so pointing that at the repo would rewrite the tracked
-`nvim-pack-lock.json`:
+`~/.local/share/nvim/site/pack`. To exercise the sync, run it in the sandbox
+— it starts from a copy of the real pack dir, and `vim.pack.update` rewrites
+only the sandbox's copy of `nvim-pack-lock.json`:
 
 ```bash
-T=$(mktemp -d)
-mkdir -p "$T/config" "$T/data/nvim/site" "$T/state" "$T/cache"
-cp -R . "$T/config/nvim"
-cp -R ~/.local/share/nvim/site/pack "$T/data/nvim/site/pack"
-XDG_CONFIG_HOME=$T/config XDG_DATA_HOME=$T/data XDG_STATE_HOME=$T/state \
-XDG_CACHE_HOME=$T/cache nvim --headless '+PackSync!' +PackDrift +qa!
+.claude/skills/run-nvim/driver.sh nvim --headless '+PackSync!' +PackDrift +qa!
 ```
 
 ## Gotchas
@@ -181,6 +211,12 @@ XDG_CACHE_HOME=$T/cache nvim --headless '+PackSync!' +PackDrift +qa!
   winbar at the top of each window. Pane asserts should target the winbar.
 - **Headless runs always print** `image.nvim: cannot query terminal size` and a
   `[ClaudeCode] … stopped` line on stderr. Benign; grep for your marker.
+- **The config is a copy taken at launch.** After editing `lua/` or the
+  lockfile, a running `$D start` session still has the old copy (re-`require`,
+  `:PackDrift`); restart it, or use `$D check` / `$D nvim`, to see the edit.
+- **Each `check`/`smoke`/`start`/`nvim` copies ~500MB of data first** (an
+  APFS clone on macOS, a few seconds). That cost is the isolation; don't
+  "speed it up" by pointing nvim at the real data.
 - **`:PackList` ends with a `Press ENTER` more-prompt** — send `Enter` to
   dismiss before the next command.
 - **telescope-fzf-native is cloned but never built/loaded** (no
@@ -195,5 +231,7 @@ XDG_CACHE_HOME=$T/cache nvim --headless '+PackSync!' +PackDrift +qa!
   (`brew install fd`); the picker uses an explicit `find_command = fd`.
 - Driver `FAIL: … pattern not on screen` → it dumps the pane; the app state
   is usually fine and the assertion pattern is what's wrong. `$D text` to look.
-- Stale tmux session from a crashed run → `tmux kill-session -t nvim-driver`
-  (driver `start` also does this automatically).
+- Stale tmux session from a crashed run → `$D stop`, which also removes that
+  session's sandbox (driver `start` also does this automatically).
+- An interrupted run can leave `$TMPDIR/nvim-driver-sandbox.*` behind; they
+  are throwaway copies and safe to delete.
