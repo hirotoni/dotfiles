@@ -20,6 +20,11 @@
       "src": "https://github.com/coder/claudecode.nvim",
       "version": "'102d835'"
     },
+    "codediff.nvim": {
+      "rev": "09d9ebef2cc5a5c04db7a349cd6c61bdf84ecc8e",
+      "src": "https://github.com/esmuellert/codediff.nvim",
+      "version": "'09d9ebe'"
+    },
     "conform.nvim": {
       "rev": "dca1a190aa85f9065979ef35802fb77131911106",
       "src": "https://github.com/stevearc/conform.nvim",
@@ -32,8 +37,7 @@
     },
     "diffview.nvim": {
       "rev": "4516612fe98ff56ae0415a259ff6361a89419b0a",
-      "src": "https://github.com/sindrets/diffview.nvim",
-      "version": "'4516612'"
+      "src": "https://github.com/sindrets/diffview.nvim"
     },
     "flash.nvim": {
       "rev": "b6346946d10d07998efee029fb0f7a593806d0cd",

@@ -141,23 +141,14 @@ on_demand("plugins.telescope", {
   cmds = { "Telescope" },
 })
 
-on_demand("plugins.diffview", {
+on_demand("plugins.codediff", {
   keys = {
-    { "<leader>dl", desc = "Diffview: local (incl. untracked)" },
-    { "<leader>dv", desc = "Diffview: PR diff(vs origin/main)" },
-    { "<leader>dc", desc = "Diffview: close" },
-    { "<leader>dh", desc = "Diffview: file history" },
-    { "<leader>dH", desc = "Diffview: branch history" },
+    { "<leader>dl", desc = "CodeDiff: local (incl. untracked)" },
+    { "<leader>dv", desc = "CodeDiff: PR diff(vs origin/main)" },
+    { "<leader>dh", desc = "CodeDiff: file history" },
+    { "<leader>dH", desc = "CodeDiff: branch history" },
   },
-  cmds = {
-    "DiffviewOpen",
-    "DiffviewClose",
-    "DiffviewFileHistory",
-    "DiffviewFocusFiles",
-    "DiffviewToggleFiles",
-    "DiffviewRefresh",
-    "DiffviewLog",
-  },
+  cmds = { "CodeDiff" },
 })
 
 -- Loading before the buffer is read keeps the startup order: diagram.nvim's
