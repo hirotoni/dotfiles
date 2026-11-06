@@ -76,3 +76,14 @@ if command -v anyenv >/dev/null 2>&1; then
   fi
   unset _anyenv_envs _anyenv_init _anyenv_comp
 fi
+
+# gori の worktree を選んで、そのルートで nvim を開く
+gwt() {
+  local root dir
+  root=$(git worktree list --porcelain 2>/dev/null | sed -n '1s/^worktree //p')
+  [ -z "$root" ] && { echo "git リポジトリの中で実行する" >&2; return 1; }
+  dir=$(git -C "$root" worktree list | grep '/\.worktree/' \
+    | fzf --with-nth=3 --preview 'git -C {1} log --oneline --graph -20' \
+    | awk '{print $1}')
+  [ -n "$dir" ] && cd "$dir" && nvim .
+}
