@@ -145,6 +145,7 @@ on_demand("plugins.codediff", {
   keys = {
     { "<leader>dl", desc = "CodeDiff: local (incl. untracked)" },
     { "<leader>dv", desc = "CodeDiff: PR diff(vs origin/main)" },
+    { "<leader>dV", desc = "CodeDiff: branch diff(vs local main)" },
     { "<leader>dh", desc = "CodeDiff: file history" },
     { "<leader>dH", desc = "CodeDiff: branch history" },
   },
